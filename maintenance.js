@@ -1,5 +1,5 @@
 // maintenance.js
-const MAINTENANCE_MODE = true; // 🔥 true = bật | false = tắt
+const MAINTENANCE_MODE = false; // 🔥 true = bật | false = tắt
 
 if (MAINTENANCE_MODE) {
     document.documentElement.innerHTML = `
