@@ -110,7 +110,6 @@
         .menu-item + .menu-item { border-top: 1px solid rgba(255,255,255,0.08); }
         .menu-close-area { flex: 1; }
 
-        /* giữ nguyên style avatar, lightning, qr, timer, toast... */
         .payment-avatar {
             position: absolute;
             top: -7px;
@@ -225,7 +224,17 @@
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        /* Modal thay đổi nội dung */
+        /* Expired QR message */
+        .qr.expired {
+            background: #1e293b;
+            color: #ef4444;
+            text-align: center;
+            font-weight: bold;
+            padding: 20px;
+            border-radius: 14px;
+        }
+
+        /* Modal thay đổi nội dung + số tiền */
         #editModal {
             position: fixed;
             inset: 0;
@@ -254,6 +263,14 @@
             background: #1e293b;
             color: white;
             margin-bottom: 16px;
+        }
+        .edit-box input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        .edit-box input::-webkit-outer-spin-button,
+        .edit-box input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
         .edit-actions { display: flex; gap: 12px; justify-content: flex-end; }
         .btn { padding: 10px 18px; border-radius: 10px; font-weight: 600; cursor: pointer; }
@@ -313,13 +330,17 @@
                 <div class="row-text"><b>Nội dung:</b> <span id="contentText"></span></div>
                 <button class="copy-btn copy-mini" onclick="copyText(document.getElementById('contentText').innerText, true)">Sao chép</button>
             </div>
+
+            <div class="row">
+                <div class="row-text"><b>Số tiền:</b> <span id="amountText">Chưa đặt</span> VNĐ</div>
+            </div>
         </div>
 
-        <div class="qr loading">
+        <div class="qr loading" id="qrContainer">
             <img id="qrImg" alt="QR Code">
         </div>
 
-        <button class="copy-btn" style="width:100%; margin-top:8px;" onclick="downloadQR(true)">⬇️ Tải QR Code</button>
+        <button class="copy-btn" style="width:100%; margin-top:8px;" id="downloadBtn" onclick="downloadQR(true)">⬇️ Tải QR Code</button>
 
         <div class="timer">
             <div class="timer-bar" id="timerBar"></div>
@@ -335,16 +356,18 @@
         <div class="menu-close-area" id="closeMenu"></div>
         <div class="menu-box">
             <div class="menu-item" id="saveAndShare">📤 Lưu QR & Chia sẻ Messenger</div>
-            <div class="menu-item" id="editContent">✏️ Thay đổi nội dung CK</div>
+            <div class="menu-item" id="editContent">✏️ Thay đổi nội dung & số tiền</div>
             <div class="menu-item" id="showGuide">❓ Hướng dẫn sử dụng</div>
         </div>
     </div>
 
-    <!-- Modal sửa nội dung -->
+    <!-- Modal sửa nội dung + số tiền -->
     <div id="editModal">
         <div class="edit-box">
-            <h3>Thay đổi nội dung chuyển khoản</h3>
+            <h3>Thay đổi nội dung & số tiền chuyển khoản</h3>
             <input type="text" id="newContent" placeholder="Ví dụ: LEHUY-ABC123" maxlength="50">
+            <input type="number" id="newAmount" placeholder="Số tiền (VNĐ, ví dụ 100000)" min="1000" step="1000">
+            <small style="color:#94a3b8; display:block;">Để trống số tiền nếu không yêu cầu cụ thể.</small>
             <div class="edit-actions">
                 <button class="btn btn-secondary" id="cancelEdit">Hủy</button>
                 <button class="btn btn-primary" id="saveEdit">Cập nhật</button>
@@ -357,12 +380,12 @@
         <div class="guide-box">
             <h3>Hướng dẫn sử dụng QR</h3>
             <ul>
-                <li>1. Sao chép số tài khoản & nội dung</li>
+                <li>1. Sao chép số tài khoản, nội dung & số tiền (nếu có)</li>
                 <li>2. Mở app ngân hàng → Chuyển khoản</li>
-                <li>3. Dán thông tin → Quét QR để nhanh hơn</li>
+                <li>3. Dán thông tin hoặc quét QR để tự động điền</li>
                 <li>4. Kiểm tra tên người nhận: <b>LE DUC HUY</b></li>
-                <li>5. Mã QR này hết hạn sau 5 phút hoặc sau khi sử dụng 1 lần (sao chép/tải)</li>
-                <li>→ Nếu cần nội dung khác → bấm 3 chấm → Thay đổi nội dung</li>
+                <li>5. QR này chỉ dùng được **1 lần** (sau khi quét/copy/tải → tự động blacklist và hết hạn)</li>
+                <li>→ Muốn QR mới → bấm 3 chấm → Thay đổi nội dung & số tiền</li>
             </ul>
             <div style="text-align:center; margin-top:16px;">
                 <button class="btn btn-primary" id="closeGuide">Đóng</button>
@@ -380,39 +403,61 @@
         const EXPIRE_TIME = 5 * 60 * 1000;
 
         let currentContent = "LEHUY-" + Math.random().toString(36).slice(2,10).toUpperCase();
-        document.getElementById("contentText").innerText = currentContent;
+        let currentAmount = 0; // 0 = không đặt
 
-        let qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT}-compact.png?addInfo=${encodeURIComponent(currentContent)}&accountName=${encodeURIComponent(NAME)}`;
+        document.getElementById("contentText").innerText = currentContent;
+        updateAmountDisplay();
+
+        function updateAmountDisplay() {
+            const display = document.getElementById("amountText");
+            if (currentAmount > 0) {
+                display.innerText = currentAmount.toLocaleString('vi-VN');
+            } else {
+                display.innerText = "Chưa đặt";
+            }
+        }
+
+        function generateQRUrl() {
+            let url = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT}-compact.png?addInfo=${encodeURIComponent(currentContent)}&accountName=${encodeURIComponent(NAME)}`;
+            if (currentAmount > 0) {
+                url += `&amount=${currentAmount}`;
+            }
+            return url;
+        }
+
+        let qrUrl = generateQRUrl();
+        const qrContainer = document.getElementById("qrContainer");
         const qrImg = document.getElementById("qrImg");
-        qrImg.onload = () => document.querySelector(".qr").classList.remove("loading");
+        qrImg.onload = () => qrContainer.classList.remove("loading");
         qrImg.src = qrUrl;
 
-        let isUsed = false; // Flag để check nếu đã "sử dụng" (copy hoặc tải) -> coi như quét 1 lần
+        let isUsed = false;
+        let start = Date.now();
 
         // ================== COPY ==================
         function copyText(text, markAsUsed = false) {
+            if (!text || isUsed) return;
             navigator.clipboard.writeText(text).then(() => {
-                const toast = document.getElementById("toast");
-                toast.classList.remove("fade");
-                toast.classList.add("show");
-                setTimeout(() => toast.classList.add("fade"), 800);
-                setTimeout(() => toast.classList.remove("show","fade"), 1200);
-
-                if (markAsUsed && !isUsed) {
+                showToast();
+                if (markAsUsed) {
                     isUsed = true;
-                    expireQR(); // Hết hạn ngay sau khi copy (coi như quét)
+                    expireQR("QR đã bị blacklist (đã sao chép)");
                 }
             });
         }
 
-        // ================== TIMER ==================
-        const start = Date.now();
-        function tick() {
-            if (isUsed) return; // Nếu đã sử dụng, không cập nhật timer nữa
+        function showToast() {
+            const toast = document.getElementById("toast");
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 2000);
+        }
 
+        // ================== TIMER ==================
+        function tick() {
+            if (isUsed) return;
             const remain = EXPIRE_TIME - (Date.now() - start);
             if (remain <= 0) {
-                expireQR();
+                expireQR("QR hết thời gian");
                 return;
             }
             document.getElementById("timerBar").style.width = (remain / EXPIRE_TIME * 100) + "%";
@@ -423,13 +468,16 @@
         }
         tick();
 
-        function expireQR() {
-            document.getElementById("timerLabel").innerText = "Mã đã hết hạn";
+        function expireQR(reason = "QR đã bị blacklist (đã sử dụng 1 lần)") {
+            document.getElementById("timerLabel").innerText = "QR đã hết hạn";
             document.getElementById("timerTime").innerText = "";
             document.getElementById("timerBar").style.width = "0%";
-            // Có thể thêm: ẩn QR hoặc disable button
-            qrImg.style.opacity = 0.5;
+
+            qrContainer.classList.add("expired");
+            qrContainer.innerHTML = `<div style="padding: 20px;">${reason}<br><br>Vui lòng tạo QR mới bằng cách thay đổi nội dung & số tiền trong menu.</div>`;
+
             document.querySelectorAll(".copy-btn").forEach(btn => btn.disabled = true);
+            document.getElementById("downloadBtn").disabled = true;
         }
 
         // ================== LIGHTNING ==================
@@ -480,21 +528,22 @@
 
         // ================== DOWNLOAD QR ==================
         async function downloadQR(markAsUsed = false) {
+            if (isUsed) return;
             try {
                 const response = await fetch(qrImg.src);
                 const blob = await response.blob();
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = `qr-lehuy-${currentContent}.png`;
+                a.download = `qr-lehuy-${currentContent}${currentAmount > 0 ? '-' + currentAmount.toLocaleString('vi-VN') : ''}.png`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
 
-                if (markAsUsed && !isUsed) {
+                if (markAsUsed) {
                     isUsed = true;
-                    expireQR(); // Hết hạn sau khi tải (coi như quét)
+                    expireQR("QR đã bị blacklist (đã tải về)");
                 }
             } catch(e) {
                 alert("Không tải được QR. Vui lòng thử chụp màn hình.");
@@ -510,80 +559,90 @@
         closeMenu.onclick = () => menuModal.style.display = "none";
 
         // 1. Lưu & Share
-document.getElementById("saveAndShare").onclick = async () => {
-    menuModal.style.display = "none";
+        document.getElementById("saveAndShare").onclick = async () => {
+            menuModal.style.display = "none";
+            if (isUsed) return;
+            try {
+                const response = await fetch(qrImg.src);
+                const blob = await response.blob();
+                const file = new File([blob], `qr-lehuy-${currentContent}.png`, { type: 'image/png' });
 
-    try {
-        // Lấy blob của QR
-        const response = await fetch(qrImg.src);
-        const blob = await response.blob();
-        const file = new File([blob], `qr-lehuy-${currentContent}.png`, { type: 'image/png' });
+                const shareText = `Chuyển khoản cho LE DUC HUY\nSố TK: ${ACCOUNT}\nNội dung: ${currentContent}${currentAmount > 0 ? `\nSố tiền: ${currentAmount.toLocaleString('vi-VN')} VNĐ` : ''}\n\nDùng QR này để chuyển nhanh nhé!`;
 
-        const shareData = {
-            title: 'QR Chuyển Khoản Lehuy',
-            text: `Chuyển khoản cho LE DUC HUY\nSố TK: ${ACCOUNT}\nNội dung: ${currentContent}\n\nDùng QR này để chuyển nhanh nhé!`,
-            files: [file]
+                const shareData = {
+                    title: 'QR Chuyển Khoản Lehuy',
+                    text: shareText,
+                    files: [file]
+                };
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share(shareData);
+                } else {
+                    await navigator.share({
+                        title: shareData.title,
+                        text: shareText + "\n\n(Ảnh QR đã được tải về - mở Messenger đính kèm để gửi)",
+                    });
+                    downloadQR(false);
+                }
+
+                if (!isUsed) {
+                    isUsed = true;
+                    expireQR("QR đã bị blacklist (đã chia sẻ)");
+                }
+            } catch (err) {
+                console.error(err);
+                downloadQR(false);
+                alert("Không chia sẻ trực tiếp được.\nQR đã tải về máy → mở Messenger đính kèm ảnh.");
+            }
         };
 
-        // Kiểm tra hỗ trợ share file
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share(shareData);
-        } else {
-            // Fallback: chỉ share text + hướng dẫn
-            await navigator.share({
-                title: shareData.title,
-                text: shareData.text + "\n\n(Ảnh QR đã được tải về máy - mở Messenger → đính kèm ảnh để gửi)",
-                url: window.location.href // hoặc bỏ nếu không cần
-            });
-            // Tải về làm fallback
-            downloadQR(false);
-        }
-
-        // Đánh dấu đã dùng → hết hạn QR
-        if (!isUsed) {
-            isUsed = true;
-            expireQR();
-        }
-
-    } catch (err) {
-        console.error("Lỗi chia sẻ:", err);
-        // Fallback mạnh: tải về + alert hướng dẫn
-        downloadQR(false);
-        alert("Không thể chia sẻ trực tiếp.\n\n→ QR đã được tải về máy.\n→ Mở Messenger → chọn cuộc chat → đính kèm ảnh QR vừa tải để gửi nhanh.");
-    }
-};
-
-        // 2. Sửa nội dung
+        // 2. Sửa nội dung & amount (tạo QR mới)
         const editModal = document.getElementById("editModal");
         document.getElementById("editContent").onclick = () => {
             menuModal.style.display = "none";
             editModal.style.display = "flex";
             document.getElementById("newContent").value = currentContent;
+            document.getElementById("newAmount").value = currentAmount > 0 ? currentAmount : '';
             document.getElementById("newContent").focus();
         };
 
         document.getElementById("cancelEdit").onclick = () => editModal.style.display = "none";
         document.getElementById("saveEdit").onclick = () => {
-            const newVal = document.getElementById("newContent").value.trim();
-            if(newVal.length < 4) {
-                alert("Nội dung quá ngắn!");
+            const newContentVal = document.getElementById("newContent").value.trim();
+            let newAmountVal = parseInt(document.getElementById("newAmount").value) || 0;
+
+            if (newContentVal.length < 4) {
+                alert("Nội dung quá ngắn (tối thiểu 4 ký tự)!");
                 return;
             }
-            currentContent = newVal;
-            document.getElementById("contentText").innerText = currentContent;
+            if (newAmountVal > 0 && (newAmountVal < 1000 || newAmountVal > 9999999999999)) {
+                alert("Số tiền phải từ 1.000 VNĐ đến dưới 10 tỷ VNĐ!");
+                return;
+            }
 
-            qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT}-compact.png?addInfo=${encodeURIComponent(currentContent)}&accountName=${encodeURIComponent(NAME)}`;
-            document.querySelector(".qr").classList.add("loading");
-            qrImg.src = qrUrl;
+            currentContent = newContentVal;
+            currentAmount = newAmountVal;
+
+            document.getElementById("contentText").innerText = currentContent;
+            updateAmountDisplay();
+
+            qrUrl = generateQRUrl();
+            // Reset QR container
+            qrContainer.classList.remove("expired", "loading");
+            qrContainer.innerHTML = '<img id="qrImg" alt="QR Code">';
+            const newQrImg = document.getElementById("qrImg");
+            newQrImg.onload = () => qrContainer.classList.remove("loading");
+            newQrImg.src = qrUrl;
 
             editModal.style.display = "none";
-            alert("Đã cập nhật nội dung mới!");
-            // Reset used flag và timer khi thay đổi nội dung
+            showToast();
+
+            // Reset trạng thái
             isUsed = false;
-            start = Date.now(); // Reset timer
+            start = Date.now();
             tick();
-            qrImg.style.opacity = 1;
             document.querySelectorAll(".copy-btn").forEach(btn => btn.disabled = false);
+            document.getElementById("downloadBtn").disabled = false;
         };
 
         // 3. Hướng dẫn
@@ -594,7 +653,7 @@ document.getElementById("saveAndShare").onclick = async () => {
         };
         document.getElementById("closeGuide").onclick = () => guideModal.style.display = "none";
 
-        // ================== ANTI DEVTOOLS (giữ nguyên nếu muốn) ==================
+        // ================== ANTI DEVTOOLS ==================
         document.addEventListener("keydown", e => {
             if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I","J","C"].includes(e.key.toUpperCase())) || (e.ctrlKey && e.key.toUpperCase()==="U")) {
                 e.preventDefault();
