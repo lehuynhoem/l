@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="description" content="Công cụ tạo QR chuyển khoản nhanh cho LE DUC HUY">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <title>Admin - QR Chuyển Khoản Lehuy</title>
 
     <link rel="preload" as="image" href="avatar.webp">
@@ -224,7 +229,6 @@
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        /* Expired QR message */
         .qr.expired {
             background: #1e293b;
             color: #ef4444;
@@ -234,8 +238,57 @@
             border-radius: 14px;
         }
 
-        /* Modal thay đổi nội dung + số tiền */
-        #editModal {
+        /* Modal lịch sử */
+        .history-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .history-box {
+            background: #0f172a;
+            border-radius: 16px;
+            padding: 20px;
+            width: 90%;
+            max-width: 380px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid #334155;
+        }
+        .history-item {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .history-item.success::after {
+            content: "✓ Đã chuyển khoản";
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #22c55e;
+            color: white;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 999px;
+        }
+        .history-item .time { font-size: 12px; color: #94a3b8; }
+        .history-item .content { font-weight: bold; }
+        .history-item .amount { color: #fbbf24; }
+        .history-toggle {
+            cursor: pointer;
+            font-size: 20px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        #editModal, #guideModal {
             position: fixed;
             inset: 0;
             background: rgba(0,0,0,0.75);
@@ -245,7 +298,7 @@
             justify-content: center;
             z-index: 10000;
         }
-        .edit-box {
+        .edit-box, .guide-box {
             background: #0f172a;
             border-radius: 16px;
             padding: 24px;
@@ -253,7 +306,7 @@
             max-width: 340px;
             border: 1px solid #334155;
         }
-        .edit-box h3 { margin: 0 0 16px; font-size: 20px; }
+        .edit-box h3, .guide-box h3 { margin: 0 0 16px; font-size: 20px; }
         .edit-box input {
             width: 100%;
             padding: 12px;
@@ -264,42 +317,31 @@
             color: white;
             margin-bottom: 16px;
         }
-        .edit-box input[type="number"] {
-            -moz-appearance: textfield;
-        }
+        .edit-box input[type="number"] { -moz-appearance: textfield; }
         .edit-box input::-webkit-outer-spin-button,
-        .edit-box input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
+        .edit-box input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .edit-actions { display: flex; gap: 12px; justify-content: flex-end; }
         .btn { padding: 10px 18px; border-radius: 10px; font-weight: 600; cursor: pointer; }
         .btn-primary { background: #3b82f6; color: white; border: none; }
         .btn-secondary { background: #475569; color: white; border: none; }
-
-        /* Hướng dẫn modal */
-        #guideModal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.75);
-            backdrop-filter: blur(8px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-        }
-        .guide-box {
-            background: #0f172a;
-            border-radius: 16px;
-            padding: 24px;
-            width: 90%;
-            max-width: 360px;
-            border: 1px solid #334155;
-            font-size: 15px;
-            line-height: 1.6;
-        }
-        .guide-box h3 { margin: 0 0 16px; }
         .guide-box ul { padding-left: 20px; margin: 12px 0; }
+
+        /* Nút cài đặt PWA */
+        #installBtn {
+            display: none;
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 999px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            z-index: 9999;
+        }
     </style>
 </head>
 <body>
@@ -340,7 +382,7 @@
             <img id="qrImg" alt="QR Code">
         </div>
 
-        <button class="copy-btn" style="width:100%; margin-top:8px;" id="downloadBtn" onclick="downloadQR(true)">⬇️ Tải QR Code</button>
+        <button class="copy-btn" style="width:100%; margin-top:8px;" id="downloadBtn" onclick="downloadQR()">⬇️ Tải QR Code</button>
 
         <div class="timer">
             <div class="timer-bar" id="timerBar"></div>
@@ -357,6 +399,7 @@
         <div class="menu-box">
             <div class="menu-item" id="saveAndShare">📤 Lưu QR & Chia sẻ Messenger</div>
             <div class="menu-item" id="editContent">✏️ Thay đổi nội dung & số tiền</div>
+            <div class="menu-item" id="showHistory">📜 Lịch sử QR đã tạo</div>
             <div class="menu-item" id="showGuide">❓ Hướng dẫn sử dụng</div>
         </div>
     </div>
@@ -375,6 +418,17 @@
         </div>
     </div>
 
+    <!-- Modal lịch sử QR -->
+    <div class="history-modal" id="historyModal">
+        <div class="history-box">
+            <h3 style="margin:0 0 16px;text-align:center;">Lịch sử QR đã tạo</h3>
+            <div id="historyList"></div>
+            <div style="text-align:center; margin-top:16px;">
+                <button class="btn btn-primary" id="closeHistory">Đóng</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal hướng dẫn -->
     <div id="guideModal">
         <div class="guide-box">
@@ -384,8 +438,10 @@
                 <li>2. Mở app ngân hàng → Chuyển khoản</li>
                 <li>3. Dán thông tin hoặc quét QR để tự động điền</li>
                 <li>4. Kiểm tra tên người nhận: <b>LE DUC HUY</b></li>
-                <li>5. QR này chỉ dùng được **1 lần** (sau khi quét/copy/tải → tự động blacklist và hết hạn)</li>
+                <li>5. QR chỉ dùng được 1 lần (sau khi tải/chia sẻ → tự động blacklist và hết hạn)</li>
                 <li>→ Muốn QR mới → bấm 3 chấm → Thay đổi nội dung & số tiền</li>
+                <li>→ Xem & đánh dấu lịch sử QR trong menu 3 chấm</li>
+                <li>→ Bấm "Cài đặt ứng dụng" để thêm vào màn hình chính như app thật</li>
             </ul>
             <div style="text-align:center; margin-top:16px;">
                 <button class="btn btn-primary" id="closeGuide">Đóng</button>
@@ -395,7 +451,43 @@
 
     <div class="toast" id="toast">Đã sao chép ✔</div>
 
+    <!-- Nút gợi ý cài đặt PWA -->
+    <button id="installBtn" style="display:none;">Cài đặt ứng dụng QR Lehuy</button>
+
     <script>
+        // ================== PWA - Add to Home Screen ==================
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installBtn').style.display = 'block';
+        });
+
+        document.getElementById('installBtn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response: ${outcome}`);
+                deferredPrompt = null;
+                document.getElementById('installBtn').style.display = 'none';
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            document.getElementById('installBtn').style.display = 'none';
+            showToast("Ứng dụng đã được cài đặt!");
+        });
+
+        // Đăng ký Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered!', reg))
+                    .catch(err => console.log('Service Worker failed:', err));
+            });
+        }
+
         // ================== DATA ==================
         const BANK_ID = "970415";
         const ACCOUNT = "104883544991";
@@ -403,25 +495,18 @@
         const EXPIRE_TIME = 5 * 60 * 1000;
 
         let currentContent = "LEHUY-" + Math.random().toString(36).slice(2,10).toUpperCase();
-        let currentAmount = 0; // 0 = không đặt
+        let currentAmount = 0;
 
         document.getElementById("contentText").innerText = currentContent;
         updateAmountDisplay();
 
         function updateAmountDisplay() {
-            const display = document.getElementById("amountText");
-            if (currentAmount > 0) {
-                display.innerText = currentAmount.toLocaleString('vi-VN');
-            } else {
-                display.innerText = "Chưa đặt";
-            }
+            document.getElementById("amountText").innerText = currentAmount > 0 ? currentAmount.toLocaleString('vi-VN') : "Chưa đặt";
         }
 
         function generateQRUrl() {
             let url = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT}-compact.png?addInfo=${encodeURIComponent(currentContent)}&accountName=${encodeURIComponent(NAME)}`;
-            if (currentAmount > 0) {
-                url += `&amount=${currentAmount}`;
-            }
+            if (currentAmount > 0) url += `&amount=${currentAmount}`;
             return url;
         }
 
@@ -433,6 +518,47 @@
 
         let isUsed = false;
         let start = Date.now();
+
+        // ================== LỊCH SỬ QR ==================
+        let history = JSON.parse(localStorage.getItem('qrHistory') || '[]');
+
+        function saveHistory() {
+            const entry = {
+                id: Date.now(),
+                content: currentContent,
+                amount: currentAmount,
+                time: new Date().toLocaleString('vi-VN'),
+                success: false
+            };
+            history.unshift(entry);
+            if (history.length > 50) history.pop();
+            localStorage.setItem('qrHistory', JSON.stringify(history));
+        }
+
+        function renderHistory() {
+            const list = document.getElementById("historyList");
+            list.innerHTML = history.length === 0 ? "<p style='text-align:center;color:#94a3b8;'>Chưa có lịch sử QR</p>" : "";
+            history.forEach(item => {
+                const div = document.createElement("div");
+                div.className = "history-item" + (item.success ? " success" : "");
+                div.innerHTML = `
+                    <div class="time">${item.time}</div>
+                    <div class="content">Nội dung: ${item.content}</div>
+                    <div class="amount">Số tiền: ${item.amount > 0 ? item.amount.toLocaleString('vi-VN') + ' VNĐ' : 'Không đặt'}</div>
+                    <span class="history-toggle" onclick="toggleSuccess(${item.id})">${item.success ? '✓' : '○'}</span>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function toggleSuccess(id) {
+            const item = history.find(h => h.id === id);
+            if (item) {
+                item.success = !item.success;
+                localStorage.setItem('qrHistory', JSON.stringify(history));
+                renderHistory();
+            }
+        }
 
         // ================== COPY ==================
         function copyText(text, markAsUsed = false) {
@@ -446,13 +572,14 @@
             });
         }
 
-        function showToast() {
+        function showToast(msg = "Đã sao chép ✔") {
             const toast = document.getElementById("toast");
+            toast.innerText = msg;
             toast.classList.add("show");
             setTimeout(() => toast.classList.remove("show"), 2000);
         }
 
-        // ================== TIMER ==================
+        // ================== TIMER & EXPIRE ==================
         function tick() {
             if (isUsed) return;
             const remain = EXPIRE_TIME - (Date.now() - start);
@@ -526,27 +653,46 @@
             if(running) requestAnimationFrame(drawLightning);
         });
 
-        // ================== DOWNLOAD QR ==================
-        async function downloadQR(markAsUsed = false) {
-            if (isUsed) return;
+        // ================== DOWNLOAD + BLACKLIST + SHARE ==================
+        async function downloadQR() {
             try {
                 const response = await fetch(qrImg.src);
                 const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `qr-lehuy-${currentContent}${currentAmount > 0 ? '-' + currentAmount.toLocaleString('vi-VN') : ''}.png`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+                const file = new File([blob], `qr-lehuy-${currentContent}.png`, { type: 'image/png' });
 
-                if (markAsUsed) {
-                    isUsed = true;
-                    expireQR("QR đã bị blacklist (đã tải về)");
+                const shareText = `Chuyển khoản cho LE DUC HUY\nSố TK: ${ACCOUNT}\nNội dung: ${currentContent}${currentAmount > 0 ? `\nSố tiền: ${currentAmount.toLocaleString('vi-VN')} VNĐ` : ''}\n\nDùng QR này để chuyển nhanh nhé!`;
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: 'QR Chuyển Khoản Lehuy',
+                        text: shareText,
+                        files: [file]
+                    });
+                    showToast("Đã chia sẻ QR");
+                } else {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `qr-lehuy-${currentContent}${currentAmount > 0 ? '-' + currentAmount.toLocaleString('vi-VN') : ''}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showToast("QR đã tải");
+                    alert("Không share file trực tiếp được.\nQR tải về máy → mở Messenger → chọn chat → đính kèm ảnh QR.");
                 }
-            } catch(e) {
-                alert("Không tải được QR. Vui lòng thử chụp màn hình.");
+
+                // Blacklist QR ngay lập tức
+                if (!isUsed) {
+                    isUsed = true;
+                    expireQR("QR đã bị blacklist (đã tải)");
+                }
+
+                // Lưu lịch sử
+                saveHistory();
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi tải/chia sẻ QR. Thử chụp màn hình.");
             }
         }
 
@@ -558,45 +704,11 @@
         menuBtn.onclick = () => menuModal.style.display = "flex";
         closeMenu.onclick = () => menuModal.style.display = "none";
 
-        // 1. Lưu & Share
-        document.getElementById("saveAndShare").onclick = async () => {
+        document.getElementById("saveAndShare").onclick = () => {
             menuModal.style.display = "none";
-            if (isUsed) return;
-            try {
-                const response = await fetch(qrImg.src);
-                const blob = await response.blob();
-                const file = new File([blob], `qr-lehuy-${currentContent}.png`, { type: 'image/png' });
-
-                const shareText = `Chuyển khoản cho LE DUC HUY\nSố TK: ${ACCOUNT}\nNội dung: ${currentContent}${currentAmount > 0 ? `\nSố tiền: ${currentAmount.toLocaleString('vi-VN')} VNĐ` : ''}\n\nDùng QR này để chuyển nhanh nhé!`;
-
-                const shareData = {
-                    title: 'QR Chuyển Khoản Lehuy',
-                    text: shareText,
-                    files: [file]
-                };
-
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share(shareData);
-                } else {
-                    await navigator.share({
-                        title: shareData.title,
-                        text: shareText + "\n\n(Ảnh QR đã được tải về - mở Messenger đính kèm để gửi)",
-                    });
-                    downloadQR(false);
-                }
-
-                if (!isUsed) {
-                    isUsed = true;
-                    expireQR("QR đã bị blacklist (đã chia sẻ)");
-                }
-            } catch (err) {
-                console.error(err);
-                downloadQR(false);
-                alert("Không chia sẻ trực tiếp được.\nQR đã tải về máy → mở Messenger đính kèm ảnh.");
-            }
+            downloadQR();
         };
 
-        // 2. Sửa nội dung & amount (tạo QR mới)
         const editModal = document.getElementById("editModal");
         document.getElementById("editContent").onclick = () => {
             menuModal.style.display = "none";
@@ -627,7 +739,6 @@
             updateAmountDisplay();
 
             qrUrl = generateQRUrl();
-            // Reset QR container
             qrContainer.classList.remove("expired", "loading");
             qrContainer.innerHTML = '<img id="qrImg" alt="QR Code">';
             const newQrImg = document.getElementById("qrImg");
@@ -635,23 +746,32 @@
             newQrImg.src = qrUrl;
 
             editModal.style.display = "none";
-            showToast();
+            showToast("Đã cập nhật QR mới");
 
-            // Reset trạng thái
             isUsed = false;
             start = Date.now();
             tick();
             document.querySelectorAll(".copy-btn").forEach(btn => btn.disabled = false);
             document.getElementById("downloadBtn").disabled = false;
+
+            saveHistory();
         };
 
-        // 3. Hướng dẫn
-        const guideModal = document.getElementById("guideModal");
+        document.getElementById("showHistory").onclick = () => {
+            menuModal.style.display = "none";
+            document.getElementById("historyModal").style.display = "flex";
+            renderHistory();
+        };
+
+        document.getElementById("closeHistory").onclick = () => {
+            document.getElementById("historyModal").style.display = "none";
+        };
+
         document.getElementById("showGuide").onclick = () => {
             menuModal.style.display = "none";
-            guideModal.style.display = "flex";
+            document.getElementById("guideModal").style.display = "flex";
         };
-        document.getElementById("closeGuide").onclick = () => guideModal.style.display = "none";
+        document.getElementById("closeGuide").onclick = () => document.getElementById("guideModal").style.display = "none";
 
         // ================== ANTI DEVTOOLS ==================
         document.addEventListener("keydown", e => {
