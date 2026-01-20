@@ -1,69 +1,38 @@
 <!DOCTYPE html>
 <html lang="vi">
-<link rel="preload" as="image" href="avatar.webp">
-<link rel="preload" as="image" href="01.gif">
-
 <head>
-    #
-    <script src="maintenance.js"></script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title> lehuy nho em </title>
+    <title>Admin - QR Chuyển Khoản Lehuy</title>
 
-
-    <script>
-        /* ===== LIGHTNING SETTINGS ===== */
-        const MAX_BOLTS = 10; // số tia sét cùng lúc
-        const SEGMENTS = 12; // số đoạn mỗi tia
-    </script>
+    <link rel="preload" as="image" href="avatar.webp">
+    <link rel="preload" as="image" href="01.gif">
 
     <style>
-        html,
-        body {
+        html, body {
             height: 100%;
             overflow: hidden;
-            /* ❌ không lướt lên xuống */
             overscroll-behavior: none;
         }
-
         body {
             user-select: none;
-            -webkit-user-select: none;
-            -ms-user-select: none;
             margin: 0;
-            min-height: 100vh;
             font-family: system-ui, sans-serif;
-
-            /* 🎨 THEME ẢNH FULL */
             background: url("theme.jpg") center / cover no-repeat fixed;
-
             display: flex;
             justify-content: center;
             align-items: center;
             color: #e5e7eb;
             position: relative;
         }
-
         body::before {
             content: "";
             position: fixed;
             inset: 0;
-            background:
-                radial-gradient(circle at top, rgba(120, 120, 255, .15), transparent 60%),
-                linear-gradient(180deg, rgba(2, 6, 23, .65), rgba(2, 6, 23, .85));
+            background: radial-gradient(circle at top, rgba(120,120,255,.15), transparent 60%),
+                        linear-gradient(180deg, rgba(2,6,23,.65), rgba(2,6,23,.85));
             backdrop-filter: blur(6px);
             z-index: 0;
-        }
-
-
-        .avatar-img,
-        .avatar-frame,
-        .online-dot,
-        .timer-bar {
-            will-change: transform, opacity;
-            transform: translateZ(0);
-            backface-visibility: hidden;
         }
 
         .card {
@@ -73,79 +42,75 @@
             border-radius: 18px;
             padding: 22px;
             overflow: hidden;
-
-            /* 🎨 THEME ẢNH */
             background: url("banner.webp") center / cover no-repeat;
-
-            /* shadow vẫn giữ */
-            box-shadow: 0 20px 40px rgba(0, 0, 0, .55);
+            box-shadow: 0 20px 40px rgba(0,0,0,.55);
         }
-
         .card::before {
             content: "";
             position: absolute;
             inset: 0;
-            background: linear-gradient(180deg,
-                    rgba(2, 6, 23, .75),
-                    rgba(2, 6, 23, .85));
+            background: linear-gradient(180deg, rgba(2,6,23,.75), rgba(2,6,23,.85));
             backdrop-filter: blur(6px);
             z-index: 0;
         }
-
-        .card>* {
-            position: relative;
-            z-index: 1;
-        }
-
+        .card > * { position: relative; z-index: 1; }
 
         .header {
             position: relative;
             padding-right: 86px;
             margin-bottom: 12px;
         }
-
-        .menu-dot {
+        .menu-btn {
             position: absolute;
-            top: 16px;
-            right: 16px;
-            font-size: 22px;
+            top: 12px;
+            right: 12px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
             cursor: pointer;
-            z-index: 10;
-            color: #fff;
-            user-select: none;
+            color: white;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.18);
+            transition: all 0.2s;
         }
+        .menu-btn:hover { background: rgba(255,255,255,0.22); transform: scale(1.08); }
 
-        .menu-toast {
+        .menu-modal {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #ff3b3b;
-            color: #fff;
-            padding: 12px 18px;
-            border-radius: 12px;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, .5);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity .3s ease, transform .3s ease;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
         }
-
-        .menu-toast.show {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
+        .menu-box {
+            background: rgba(15,23,42,0.92);
+            border-radius: 16px;
+            width: 86%;
+            max-width: 320px;
+            padding: 16px 0;
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
         }
-
-        .menu-toast.fade {
-            opacity: 0;
-            transform: translateY(-6px);
+        .menu-item {
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
         }
+        .menu-item:hover { background: rgba(255,255,255,0.08); }
+        .menu-item + .menu-item { border-top: 1px solid rgba(255,255,255,0.08); }
+        .menu-close-area { flex: 1; }
 
-        .header h1 {
-            margin: 0;
-            font-size: 20px;
-        }
-
+        /* giữ nguyên style avatar, lightning, qr, timer, toast... */
         .payment-avatar {
             position: absolute;
             top: -7px;
@@ -153,7 +118,6 @@
             width: 100px;
             height: 100px;
         }
-
         .payment-avatar canvas {
             position: absolute;
             top: 6px;
@@ -162,15 +126,12 @@
             width: 88px;
             height: 88px;
             border-radius: 50%;
-            /* 🔥 khóa hình tròn */
             pointer-events: none;
             z-index: 3;
             mix-blend-mode: screen;
-            filter: blur(.3px);
+            filter: blur(0.3px);
             overflow: hidden;
         }
-
-
         .avatar-img {
             position: absolute;
             bottom: 23.6px;
@@ -181,7 +142,6 @@
             border-radius: 50%;
             z-index: 1;
         }
-
         .avatar-frame {
             position: absolute;
             top: 0;
@@ -190,7 +150,6 @@
             height: 88px;
             z-index: 2;
         }
-
         .online-dot {
             position: absolute;
             bottom: 17px;
@@ -200,26 +159,13 @@
             background: #3ba55d;
             border-radius: 50%;
             border: 2.7px solid #020617;
-            box-shadow: 0 0 6px rgba(59, 165, 93, .9);
+            box-shadow: 0 0 6px rgba(59,165,93,.9);
             z-index: 3;
         }
 
-        .info {
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .row {
-            display: flex;
-            gap: 10px;
-            margin: 6px 0;
-        }
-
-        .row-text {
-            flex: 1;
-            font-weight: 600;
-        }
-
+        .info { font-size: 14px; line-height: 1.6; }
+        .row { display: flex; gap: 10px; margin: 6px 0; align-items: center; }
+        .row-text { flex: 1; font-weight: 600; }
         .copy-btn {
             padding: 10px 14px;
             background: #020617;
@@ -229,16 +175,11 @@
             cursor: pointer;
             font-weight: 600;
         }
-
         .copy-btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 0 18px rgba(255, 255, 255, .35);
+            box-shadow: 0 0 18px rgba(255,255,255,.35);
         }
-
-        .copy-mini {
-            padding: 8px 12px;
-            font-size: 13px;
-        }
+        .copy-mini { padding: 8px 12px; font-size: 13px; }
 
         .qr {
             position: relative;
@@ -247,7 +188,6 @@
             border-radius: 14px;
             margin: 16px 0 8px;
         }
-
         .qr.loading::before {
             content: "";
             position: absolute;
@@ -256,160 +196,130 @@
             background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 37%, #e5e7eb 63%);
             background-size: 400% 100%;
             animation: shimmer .8s infinite linear;
-            pointer-events: none;
         }
-
-        .qr img {
-            width: 100%;
-            position: relative;
-            z-index: 1;
-        }
-
         @keyframes shimmer {
-            from {
-                background-position: 100% 0
-            }
-
-            to {
-                background-position: -100% 0
-            }
+            from { background-position: 100% 0 }
+            to   { background-position: -100% 0 }
         }
+        .qr img { width: 100%; position: relative; z-index: 1; }
 
-        .timer {
-            margin-top: 14px;
-            height: 4px;
-            background: #1e293b;
-            border-radius: 999px;
-            overflow: hidden;
-        }
+        .timer { margin-top: 14px; height: 4px; background: #1e293b; border-radius: 999px; overflow: hidden; }
+        .timer-bar { height: 100%; background: #fff; width: 100%; transition: width 0.4s linear; }
+        .timer-wrap { margin-top: 14px; display: flex; gap: 10px; justify-content: center; }
+        .timer-text, .timer-time { font-size: 18px; font-weight: 900; }
 
-        .timer-bar {
-            height: 100%;
-            background: #fff;
-        }
-
-        .timer-wrap {
-            margin-top: 14px;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .timer-text,
-        .timer-time {
-            font-size: 18px;
-            font-weight: 900;
-        }
-
-        #maintenance {
-            position: fixed;
-            inset: 0;
-            z-index: 99999;
-            background:
-                radial-gradient(circle at top, rgba(120, 120, 255, .15), transparent 60%),
-                linear-gradient(180deg, #020617, #000);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
-        }
-
-        .maintenance-box {
-            text-align: center;
-            padding: 32px 28px;
-            max-width: 320px;
-            border-radius: 20px;
-            background: rgba(0, 0, 0, .6);
-            box-shadow: 0 0 40px rgba(0, 0, 0, .8);
-            color: #fff;
-            font-family: system-ui, sans-serif;
-        }
-
-        .maintenance-box h1 {
-            margin: 0 0 12px;
-            font-size: 22px;
-            font-weight: 900;
-        }
-
-        .maintenance-box p {
-            margin: 0;
-            font-size: 14px;
-            opacity: .85;
-            line-height: 1.5;
-        }
-
-        /* ===== TOAST ===== */
         .toast {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%) translateY(16px);
-
             background: #000;
-            /* 🖤 nền đen */
             color: #fff;
-            /* 🤍 chữ trắng */
-
-            border: 1px solid rgba(255, 255, 255, .25);
+            border: 1px solid rgba(255,255,255,.25);
             padding: 10px 16px;
             border-radius: 999px;
             font-weight: 600;
-
             opacity: 0;
             pointer-events: none;
-
-            transition: opacity .35s ease, transform .35s ease;
+            transition: all .35s ease;
         }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        /* hiện */
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
+        /* Modal thay đổi nội dung */
+        #editModal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
         }
+        .edit-box {
+            background: #0f172a;
+            border-radius: 16px;
+            padding: 24px;
+            width: 88%;
+            max-width: 340px;
+            border: 1px solid #334155;
+        }
+        .edit-box h3 { margin: 0 0 16px; font-size: 20px; }
+        .edit-box input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: 1px solid #475569;
+            background: #1e293b;
+            color: white;
+            margin-bottom: 16px;
+        }
+        .edit-actions { display: flex; gap: 12px; justify-content: flex-end; }
+        .btn { padding: 10px 18px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: #3b82f6; color: white; border: none; }
+        .btn-secondary { background: #475569; color: white; border: none; }
 
-        /* mờ dần */
-        .toast.fade {
-            opacity: 0;
-            transform: translateX(-50%) translateY(-6px);
+        /* Hướng dẫn modal */
+        #guideModal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
         }
+        .guide-box {
+            background: #0f172a;
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 360px;
+            border: 1px solid #334155;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        .guide-box h3 { margin: 0 0 16px; }
+        .guide-box ul { padding-left: 20px; margin: 12px 0; }
     </style>
 </head>
-<div class="menu-toast" id="menuToast">⚠️ Có lỗi, vui lòng nhắn tin cho Admin</div>
-
 <body>
+
     <div class="card">
-        <div class="menu-dot" id="menuDot">⋮</div>
+        <div class="menu-btn" id="menuBtn">⋮</div>
 
         <div class="header">
-            <h1>🔰 QR Chuyển Khoản</h1>
+            <h1>🔰 Admin - QR Chuyển Khoản</h1>
             <div class="payment-avatar">
                 <canvas id="lightning"></canvas>
-                <img src="avt.png" class="avatar-img">
-                <img src="01.gif" class="avatar-frame">
+                <img src="avt.png" class="avatar-img" alt="avatar">
+                <img src="01.gif" class="avatar-frame" alt="frame">
                 <span class="online-dot"></span>
             </div>
         </div>
 
         <div class="info">
-            <b>🏧 Ngân hàng:</b> Vietinbank<br>
-            <b>👤 Chủ Tài Khoản:</b> LE DUC HUY<br>
+            <b>🏧 Ngân hàng:</b> VietinBank<br>
+            <b>👤 Chủ TK:</b> LE DUC HUY (Admin)<br>
 
             <div class="row">
-                <div class="row-text">💳 104883544991</div>
-                <button class="copy-btn copy-mini" onclick="copyText(ACCOUNT)">Sao chép</button>
+                <div class="row-text">💳 <span id="accNumber">104883544991</span></div>
+                <button class="copy-btn copy-mini" onclick="copyText(document.getElementById('accNumber').innerText, true)">Sao chép</button>
             </div>
 
             <div class="row">
                 <div class="row-text"><b>Nội dung:</b> <span id="contentText"></span></div>
-                <button class="copy-btn copy-mini" onclick="copyText(content)">Sao chép</button>
+                <button class="copy-btn copy-mini" onclick="copyText(document.getElementById('contentText').innerText, true)">Sao chép</button>
             </div>
         </div>
 
         <div class="qr loading">
-            <img id="qrImg">
+            <img id="qrImg" alt="QR Code">
         </div>
 
-        <button class="copy-btn" onclick="downloadQR()">⬇️ Tải QR</button>
+        <button class="copy-btn" style="width:100%; margin-top:8px;" onclick="downloadQR(true)">⬇️ Tải QR Code</button>
 
         <div class="timer">
             <div class="timer-bar" id="timerBar"></div>
@@ -420,303 +330,262 @@
         </div>
     </div>
 
+    <!-- Menu 3 chấm -->
+    <div class="menu-modal" id="menuModal">
+        <div class="menu-close-area" id="closeMenu"></div>
+        <div class="menu-box">
+            <div class="menu-item" id="saveAndShare">📤 Lưu QR & Chia sẻ Messenger</div>
+            <div class="menu-item" id="editContent">✏️ Thay đổi nội dung CK</div>
+            <div class="menu-item" id="showGuide">❓ Hướng dẫn sử dụng</div>
+        </div>
+    </div>
+
+    <!-- Modal sửa nội dung -->
+    <div id="editModal">
+        <div class="edit-box">
+            <h3>Thay đổi nội dung chuyển khoản</h3>
+            <input type="text" id="newContent" placeholder="Ví dụ: LEHUY-ABC123" maxlength="50">
+            <div class="edit-actions">
+                <button class="btn btn-secondary" id="cancelEdit">Hủy</button>
+                <button class="btn btn-primary" id="saveEdit">Cập nhật</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal hướng dẫn -->
+    <div id="guideModal">
+        <div class="guide-box">
+            <h3>Hướng dẫn sử dụng QR</h3>
+            <ul>
+                <li>1. Sao chép số tài khoản & nội dung</li>
+                <li>2. Mở app ngân hàng → Chuyển khoản</li>
+                <li>3. Dán thông tin → Quét QR để nhanh hơn</li>
+                <li>4. Kiểm tra tên người nhận: <b>LE DUC HUY</b></li>
+                <li>5. Mã QR này hết hạn sau 5 phút hoặc sau khi sử dụng 1 lần (sao chép/tải)</li>
+                <li>→ Nếu cần nội dung khác → bấm 3 chấm → Thay đổi nội dung</li>
+            </ul>
+            <div style="text-align:center; margin-top:16px;">
+                <button class="btn btn-primary" id="closeGuide">Đóng</button>
+            </div>
+        </div>
+    </div>
+
     <div class="toast" id="toast">Đã sao chép ✔</div>
 
     <script>
-        /* ===== DATA ===== */
-        const BANK_ID = "970415", ACCOUNT = "104883544991", NAME = "LE DUC HUY";
+        // ================== DATA ==================
+        const BANK_ID = "970415";
+        const ACCOUNT = "104883544991";
+        const NAME    = "LE DUC HUY";
         const EXPIRE_TIME = 5 * 60 * 1000;
 
-        /* ===== QR ===== */
-        const content = "LEHUY-" + Math.random().toString(36).slice(2, 10).toUpperCase();
-        contentText.innerText = content;
-        const qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT}-compact.png?addInfo=${content}&accountName=${NAME}`;
+        let currentContent = "LEHUY-" + Math.random().toString(36).slice(2,10).toUpperCase();
+        document.getElementById("contentText").innerText = currentContent;
+
+        let qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT}-compact.png?addInfo=${encodeURIComponent(currentContent)}&accountName=${encodeURIComponent(NAME)}`;
+        const qrImg = document.getElementById("qrImg");
         qrImg.onload = () => document.querySelector(".qr").classList.remove("loading");
         qrImg.src = qrUrl;
 
-        /* ===== COPY ===== */
-        function copyText(t) {
-            navigator.clipboard.writeText(t);
+        let isUsed = false; // Flag để check nếu đã "sử dụng" (copy hoặc tải) -> coi như quét 1 lần
 
-            toast.classList.remove("fade");
-            toast.classList.add("show");
+        // ================== COPY ==================
+        function copyText(text, markAsUsed = false) {
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById("toast");
+                toast.classList.remove("fade");
+                toast.classList.add("show");
+                setTimeout(() => toast.classList.add("fade"), 800);
+                setTimeout(() => toast.classList.remove("show","fade"), 1200);
 
-            // giữ hiện 800ms
-            setTimeout(() => {
-                toast.classList.add("fade");
-            }, 800);
-
-            // ẩn hẳn sau khi fade xong
-            setTimeout(() => {
-                toast.classList.remove("show", "fade");
-            }, 1200);
+                if (markAsUsed && !isUsed) {
+                    isUsed = true;
+                    expireQR(); // Hết hạn ngay sau khi copy (coi như quét)
+                }
+            });
         }
 
-        /* ===== TIMER ===== */
+        // ================== TIMER ==================
         const start = Date.now();
-        (function tick() {
-            const r = EXPIRE_TIME - (Date.now() - start);
-            if (r <= 0) {
-                timerLabel.innerText = "Mã đã hết hạn";
-                timerTime.innerText = "";
-                timerBar.style.width = "0%";
+        function tick() {
+            if (isUsed) return; // Nếu đã sử dụng, không cập nhật timer nữa
+
+            const remain = EXPIRE_TIME - (Date.now() - start);
+            if (remain <= 0) {
+                expireQR();
                 return;
             }
-            timerBar.style.width = r / EXPIRE_TIME * 100 + "%";
-            timerTime.innerText = `${Math.floor(r / 60000)}:${String(Math.floor(r % 60000 / 1000)).padStart(2, "0")}`;
+            document.getElementById("timerBar").style.width = (remain / EXPIRE_TIME * 100) + "%";
+            const min = Math.floor(remain / 60000);
+            const sec = Math.floor((remain % 60000) / 1000);
+            document.getElementById("timerTime").innerText = `${min}:${sec.toString().padStart(2,"0")}`;
             requestAnimationFrame(tick);
-        })();
+        }
+        tick();
 
+        function expireQR() {
+            document.getElementById("timerLabel").innerText = "Mã đã hết hạn";
+            document.getElementById("timerTime").innerText = "";
+            document.getElementById("timerBar").style.width = "0%";
+            // Có thể thêm: ẩn QR hoặc disable button
+            qrImg.style.opacity = 0.5;
+            document.querySelectorAll(".copy-btn").forEach(btn => btn.disabled = true);
+        }
 
-
-        /* ===== STRONG LIGHTNING IN AVATAR CIRCLE ===== */
+        // ================== LIGHTNING ==================
         const c = document.getElementById("lightning");
         const ctx = c.getContext("2d");
-
         const size = 88;
         const dpr = window.devicePixelRatio || 1;
-        c.width = size * dpr;
-        c.height = size * dpr;
+        c.width = size * dpr; c.height = size * dpr;
         ctx.scale(dpr, dpr);
 
-        // 🌩️ màu sáng hơn
-        const colors = [
-            "rgba(255,255,255,1)",
-            "rgba(230,230,230,.95)",
-            "rgba(210,190,255,.95)"
-        ];
-
+        const colors = ["rgba(255,255,255,1)", "rgba(230,230,230,.95)", "rgba(210,190,255,.95)"];
         let running = true;
 
         function drawLightning() {
             if (!running) return;
-
-            ctx.clearRect(0, 0, size, size);
-
+            ctx.clearRect(0,0,size,size);
             ctx.save();
             ctx.beginPath();
-            ctx.arc(size / 2, size / 2, size / 2 - 2, 0, Math.PI * 2);
+            ctx.arc(size/2, size/2, size/2-2, 0, Math.PI*2);
             ctx.clip();
 
-            const bolts = Math.floor(Math.random() * MAX_BOLTS) + 1;
-
-            for (let b = 0; b < bolts; b++) {
-                let x = Math.random() * size;
-                let y = Math.random() * size;
-
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-
-                for (let i = 0; i < SEGMENTS; i++) {
-                    x += (Math.random() - 0.5) * 14;
-                    y += (Math.random() - 0.5) * 14;
-                    ctx.lineTo(x, y);
+            const bolts = Math.floor(Math.random()*10)+1;
+            for(let b=0; b<bolts; b++){
+                let x = Math.random()*size;
+                let y = Math.random()*size;
+                ctx.beginPath(); ctx.moveTo(x,y);
+                for(let i=0; i<12; i++){
+                    x += (Math.random()-0.5)*14;
+                    y += (Math.random()-0.5)*14;
+                    ctx.lineTo(x,y);
                 }
-
-                const color = colors[Math.random() * colors.length | 0];
-                ctx.strokeStyle = color;
-                ctx.lineWidth = Math.random() * 1.2 + 0.9;
-                ctx.shadowColor = color;
+                const col = colors[Math.random()*colors.length|0];
+                ctx.strokeStyle = col;
+                ctx.lineWidth = Math.random()*1.2 + 0.9;
+                ctx.shadowColor = col;
                 ctx.shadowBlur = 14;
                 ctx.stroke();
             }
-
             ctx.restore();
-
-            requestAnimationFrame(() => {
-                setTimeout(drawLightning, Math.random() * 280 + 160);
-            });
+            requestAnimationFrame(() => setTimeout(drawLightning, Math.random()*280 + 160));
         }
-
-
-
-        requestAnimationFrame(drawLightning);
-        /* ===== DOWNLOAD QR ===== */
-
-        async function downloadQR() {
-            const response = await fetch(qrImg.src);
-            const blob = await response.blob();
-
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "chuyenkhoan-lehuy.png"; // tên file
-            document.body.appendChild(a);
-            a.click();
-
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-        /* ===== ANTI F12 / DEVTOOLS ===== */
-        document.addEventListener("keydown", e => {
-            // F12
-            if (e.key === "F12") {
-                e.preventDefault();
-                return false;
-            }
-
-            // Ctrl + Shift + I / J / C
-            if (
-                e.ctrlKey &&
-                e.shiftKey &&
-                ["I", "J", "C"].includes(e.key.toUpperCase())
-            ) {
-                e.preventDefault();
-                return false;
-            }
-
-            // Ctrl + U (view source)
-            if (e.ctrlKey && e.key.toUpperCase() === "U") {
-                e.preventDefault();
-                return false;
-            }
-        });
-
-        document.addEventListener("contextmenu", e => {
-            if (!e.target.closest(".allow-action")) {
-                e.preventDefault();
-            }
-        });
-
+        drawLightning();
 
         document.addEventListener("visibilitychange", () => {
             running = !document.hidden;
-            if (running) requestAnimationFrame(drawLightning);
+            if(running) requestAnimationFrame(drawLightning);
         });
 
-    </script>
-    <script>
+        // ================== DOWNLOAD QR ==================
+        async function downloadQR(markAsUsed = false) {
+            try {
+                const response = await fetch(qrImg.src);
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `qr-lehuy-${currentContent}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
 
-        const menuDot = document.getElementById("menuDot");
-        const menuToast = document.getElementById("menuToast");
-
-        menuDot.addEventListener("click", () => {
-            menuToast.classList.remove("fade");
-            menuToast.classList.add("show");
-
-            setTimeout(() => {
-                menuToast.classList.add("fade");
-            }, 1500);
-
-            setTimeout(() => {
-                menuToast.classList.remove("show", "fade");
-            }, 2000);
-        });
-
-        /* ===== DETECT DEVTOOLS ===== */
-        (function () {
-            let opened = false;
-
-            const threshold = 160;
-
-            setInterval(() => {
-                const widthDiff = window.outerWidth - window.innerWidth > threshold;
-                const heightDiff = window.outerHeight - window.innerHeight > threshold;
-
-                if (widthDiff || heightDiff) {
-                    if (!opened) {
-                        opened = true;
-
-                        // 🔒 khóa cứng
-                        document.body.innerHTML = `
-                    <div style="
-                        height:100vh;
-                        display:flex;
-                        align-items:center;
-                        justify-content:center;
-                        background:#000;
-                        color:#fff;
-                        font-size:22px;
-                        font-weight:700;">
-                        ⚠️ Truy cập bị chặn
-                    </div>
-                `;
-                    }
+                if (markAsUsed && !isUsed) {
+                    isUsed = true;
+                    expireQR(); // Hết hạn sau khi tải (coi như quét)
                 }
-            }, 500);
-        })();
-        document.addEventListener("visibilitychange", () => {
-            running = !document.hidden;
-            if (running) requestAnimationFrame(drawLightning);
-        });
-
-    </script>
-    <script>
-        (function blockDesktopModeOnMobile() {
-            const ua = navigator.userAgent;
-            const isMobileUA = /Android|iPhone|iPad|iPod/i.test(ua);
-            const isTouch = navigator.maxTouchPoints > 1;
-
-            const isDesktopLayout =
-                window.innerWidth >= 900 ||
-                window.innerWidth / window.innerHeight > 1.25;
-
-            if (isMobileUA && isTouch && isDesktopLayout) {
-                document.body.style.margin = "0";
-                document.body.style.display = "flex";
-                document.body.style.alignItems = "center";
-                document.body.style.justifyContent = "center";
-
-                document.body.innerHTML = `
-            <div style="
-                text-align:center;
-                padding:24px;
-                max-width:320px;
-                background:#000;
-                color:#fff;
-                border-radius:16px;
-                box-shadow:0 0 30px rgba(0,0,0,.6);
-                font-family:system-ui,sans-serif;">
-                <h2 style="margin:0 0 8px;font-size:20px;">
-                    ⚠️ Không hỗ trợ chế độ máy tính
-                </h2>
-                <p style="font-size:14px;opacity:.8;line-height:1.4;">
-                    Vui lòng tắt “Trang web cho máy tính”<br>
-                    rồi tải lại trang.
-                </p>
-            </div>
-        `;
+            } catch(e) {
+                alert("Không tải được QR. Vui lòng thử chụp màn hình.");
             }
-        })();
-    </script>
-    <script>
-        /* ===== ANTI ZOOM MOBILE ===== */
-        (function antiZoomMobile() {
-            let lastTouchEnd = 0;
+        }
 
-            // ❌ Double tap zoom
-            document.addEventListener("touchend", e => {
-                const now = Date.now();
-                if (now - lastTouchEnd <= 300) {
-                    e.preventDefault();
-                }
-                lastTouchEnd = now;
-            }, { passive: false });
+        // ================== MENU & MODAL ==================
+        const menuBtn   = document.getElementById("menuBtn");
+        const menuModal = document.getElementById("menuModal");
+        const closeMenu = document.getElementById("closeMenu");
 
-            // ❌ Pinch zoom
-            document.addEventListener("touchmove", e => {
-                if (e.touches.length > 1) {
-                    e.preventDefault();
+        menuBtn.onclick = () => menuModal.style.display = "flex";
+        closeMenu.onclick = () => menuModal.style.display = "none";
+
+        // 1. Lưu & Share
+        document.getElementById("saveAndShare").onclick = async () => {
+            menuModal.style.display = "none";
+            try {
+                const response = await fetch(qrImg.src);
+                const blob = await response.blob();
+                const file = new File([blob], `qr-lehuy-${currentContent}.png`, { type: 'image/png' });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'QR Chuyển Khoản Lehuy',
+                        text: 'Chia sẻ QR chuyển khoản cho bạn bè!'
+                    });
+                } else {
+                    // Fallback: tải về rồi hướng dẫn chia sẻ thủ công
+                    downloadQR();
+                    alert("Trình duyệt không hỗ trợ chia sẻ file. Đã tải QR về máy.\n\n→ Mở Messenger → chọn cuộc chat → đính kèm ảnh vừa tải để gửi.");
                 }
-            }, { passive: false });
-        })();
-        // ❌ Ctrl + mouse wheel
-        document.addEventListener("wheel", e => {
-            if (e.ctrlKey) {
-                e.preventDefault();
+
+                if (!isUsed) {
+                    isUsed = true;
+                    expireQR(); // Hết hạn sau khi share/tải
+                }
+            } catch (e) {
+                alert("Lỗi khi chia sẻ: " + e.message + "\n\nVui lòng tải thủ công và chia sẻ.");
             }
-        }, { passive: false });
+        };
+
+        // 2. Sửa nội dung
+        const editModal = document.getElementById("editModal");
+        document.getElementById("editContent").onclick = () => {
+            menuModal.style.display = "none";
+            editModal.style.display = "flex";
+            document.getElementById("newContent").value = currentContent;
+            document.getElementById("newContent").focus();
+        };
+
+        document.getElementById("cancelEdit").onclick = () => editModal.style.display = "none";
+        document.getElementById("saveEdit").onclick = () => {
+            const newVal = document.getElementById("newContent").value.trim();
+            if(newVal.length < 4) {
+                alert("Nội dung quá ngắn!");
+                return;
+            }
+            currentContent = newVal;
+            document.getElementById("contentText").innerText = currentContent;
+
+            qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT}-compact.png?addInfo=${encodeURIComponent(currentContent)}&accountName=${encodeURIComponent(NAME)}`;
+            document.querySelector(".qr").classList.add("loading");
+            qrImg.src = qrUrl;
+
+            editModal.style.display = "none";
+            alert("Đã cập nhật nội dung mới!");
+            // Reset used flag và timer khi thay đổi nội dung
+            isUsed = false;
+            start = Date.now(); // Reset timer
+            tick();
+            qrImg.style.opacity = 1;
+            document.querySelectorAll(".copy-btn").forEach(btn => btn.disabled = false);
+        };
+
+        // 3. Hướng dẫn
+        const guideModal = document.getElementById("guideModal");
+        document.getElementById("showGuide").onclick = () => {
+            menuModal.style.display = "none";
+            guideModal.style.display = "flex";
+        };
+        document.getElementById("closeGuide").onclick = () => guideModal.style.display = "none";
+
+        // ================== ANTI DEVTOOLS (giữ nguyên nếu muốn) ==================
         document.addEventListener("keydown", e => {
-            if (
-                e.ctrlKey &&
-                ["+", "-", "=", "0"].includes(e.key)
-            ) {
+            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I","J","C"].includes(e.key.toUpperCase())) || (e.ctrlKey && e.key.toUpperCase()==="U")) {
                 e.preventDefault();
             }
         });
-
+        document.addEventListener("contextmenu", e => e.preventDefault());
     </script>
-
 </body>
-
 </html>
