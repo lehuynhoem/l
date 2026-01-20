@@ -1,25 +1,11 @@
-const CACHE_NAME = 'qr-lehuy-v1';
-const urlsToCache = [
-  './',
-  'index.html',
-  'theme.jpg',
-  'banner.webp',
-  'avatar.webp',
-  'avt.png',
-  '01.gif'
-  // Thêm các file ảnh khác nếu có
-];
-
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-  );
+self.addEventListener('install', e => {
+  self.skipWaiting();
 });
 
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => response || fetch(event.request))
-  );
+self.addEventListener('activate', e => {
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', e => {
+  e.respondWith(fetch(e.request));
 });
