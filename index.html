@@ -9,10 +9,8 @@
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
     <title>Admin - QR Chuyển Khoản Lehuy</title>
-
     <link rel="preload" as="image" href="avatar.webp">
     <link rel="preload" as="image" href="01.gif">
-
     <style>
         html, body {
             height: 100%;
@@ -39,7 +37,6 @@
             backdrop-filter: blur(6px);
             z-index: 0;
         }
-
         .card {
             position: relative;
             max-width: 380px;
@@ -59,7 +56,6 @@
             z-index: 0;
         }
         .card > * { position: relative; z-index: 1; }
-
         .header {
             position: relative;
             padding-right: 86px;
@@ -84,7 +80,6 @@
             transition: all 0.2s;
         }
         .menu-btn:hover { background: rgba(255,255,255,0.22); transform: scale(1.08); }
-
         .menu-modal {
             position: fixed;
             inset: 0;
@@ -114,7 +109,6 @@
         .menu-item:hover { background: rgba(255,255,255,0.08); }
         .menu-item + .menu-item { border-top: 1px solid rgba(255,255,255,0.08); }
         .menu-close-area { flex: 1; }
-
         .payment-avatar {
             position: absolute;
             top: -7px;
@@ -166,7 +160,6 @@
             box-shadow: 0 0 6px rgba(59,165,93,.9);
             z-index: 3;
         }
-
         .info { font-size: 14px; line-height: 1.6; }
         .row { display: flex; gap: 10px; margin: 6px 0; align-items: center; }
         .row-text { flex: 1; font-weight: 600; }
@@ -184,7 +177,6 @@
             box-shadow: 0 0 18px rgba(255,255,255,.35);
         }
         .copy-mini { padding: 8px 12px; font-size: 13px; }
-
         .qr {
             position: relative;
             background: #fff;
@@ -203,15 +195,13 @@
         }
         @keyframes shimmer {
             from { background-position: 100% 0 }
-            to   { background-position: -100% 0 }
+            to { background-position: -100% 0 }
         }
         .qr img { width: 100%; position: relative; z-index: 1; }
-
         .timer { margin-top: 14px; height: 4px; background: #1e293b; border-radius: 999px; overflow: hidden; }
         .timer-bar { height: 100%; background: #fff; width: 100%; transition: width 0.4s linear; }
         .timer-wrap { margin-top: 14px; display: flex; gap: 10px; justify-content: center; }
         .timer-text, .timer-time { font-size: 18px; font-weight: 900; }
-
         .toast {
             position: fixed;
             bottom: 20px;
@@ -228,7 +218,6 @@
             transition: all .35s ease;
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
         .qr.expired {
             background: #1e293b;
             color: #ef4444;
@@ -237,7 +226,6 @@
             padding: 20px;
             border-radius: 14px;
         }
-
         /* Modal lịch sử */
         .history-modal {
             position: fixed;
@@ -287,7 +275,6 @@
             top: 10px;
             right: 10px;
         }
-
         #editModal, #guideModal {
             position: fixed;
             inset: 0;
@@ -325,7 +312,6 @@
         .btn-primary { background: #3b82f6; color: white; border: none; }
         .btn-secondary { background: #475569; color: white; border: none; }
         .guide-box ul { padding-left: 20px; margin: 12px 0; }
-
         /* Nút cài đặt PWA */
         #installBtn {
             display: none;
@@ -345,10 +331,8 @@
     </style>
 </head>
 <body>
-
     <div class="card">
         <div class="menu-btn" id="menuBtn">⋮</div>
-
         <div class="header">
             <h1>🔰 Admin - QR Chuyển Khoản</h1>
             <div class="payment-avatar">
@@ -358,32 +342,25 @@
                 <span class="online-dot"></span>
             </div>
         </div>
-
         <div class="info">
             <b>🏧 Ngân hàng:</b> VietinBank<br>
             <b>👤 Chủ TK:</b> LE DUC HUY (Admin)<br>
-
             <div class="row">
                 <div class="row-text">💳 <span id="accNumber">104883544991</span></div>
                 <button class="copy-btn copy-mini" onclick="copyText(document.getElementById('accNumber').innerText, true)">Sao chép</button>
             </div>
-
             <div class="row">
                 <div class="row-text"><b>Nội dung:</b> <span id="contentText"></span></div>
                 <button class="copy-btn copy-mini" onclick="copyText(document.getElementById('contentText').innerText, true)">Sao chép</button>
             </div>
-
             <div class="row">
                 <div class="row-text"><b>Số tiền:</b> <span id="amountText">Chưa đặt</span> VNĐ</div>
             </div>
         </div>
-
         <div class="qr loading" id="qrContainer">
             <img id="qrImg" alt="QR Code">
         </div>
-
         <button class="copy-btn" style="width:100%; margin-top:8px;" id="downloadBtn" onclick="downloadQR()">⬇️ Tải QR Code</button>
-
         <div class="timer">
             <div class="timer-bar" id="timerBar"></div>
         </div>
@@ -399,6 +376,7 @@
         <div class="menu-box">
             <div class="menu-item" id="saveAndShare">📤 Lưu QR & Chia sẻ Messenger</div>
             <div class="menu-item" id="editContent">✏️ Thay đổi nội dung & số tiền</div>
+            <div class="menu-item" id="generateNewRandom">🔄 Tạo QR mới (nội dung random)</div>
             <div class="menu-item" id="showHistory">📜 Lịch sử QR đã tạo</div>
             <div class="menu-item" id="showGuide">❓ Hướng dẫn sử dụng</div>
         </div>
@@ -418,7 +396,7 @@
         </div>
     </div>
 
-    <!-- Modal lịch sử QR -->
+    <!-- Modal lịch sử -->
     <div class="history-modal" id="historyModal">
         <div class="history-box">
             <h3 style="margin:0 0 16px;text-align:center;">Lịch sử QR đã tạo</h3>
@@ -450,42 +428,29 @@
     </div>
 
     <div class="toast" id="toast">Đã sao chép ✔</div>
-
     <!-- Nút gợi ý cài đặt PWA -->
     <button id="installBtn" style="display:none;">Cài đặt ứng dụng QR Lehuy</button>
 
     <script>
-let deferredPrompt;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-
-    const btn = document.getElementById('installBtn');
-    btn.style.display = 'block';
-    btn.innerText = "📲 Cài đặt ứng dụng";
-});
-
-document.getElementById('installBtn').addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log("Install outcome:", outcome);
-
-    deferredPrompt = null;
-    document.getElementById('installBtn').style.display = 'none';
-});
-
-window.addEventListener('appinstalled', () => {
-    showToast("✅ Ứng dụng đã được cài đặt");
-    document.getElementById('installBtn').style.display = 'none';
-});
-
-        window.addEventListener('appinstalled', () => {
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btn = document.getElementById('installBtn');
+            btn.style.display = 'block';
+            btn.innerText = "📲 Cài đặt ứng dụng";
+        });
+        document.getElementById('installBtn').addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log("Install outcome:", outcome);
+            deferredPrompt = null;
             document.getElementById('installBtn').style.display = 'none';
-            showToast("Ứng dụng đã được cài đặt!");
+        });
+        window.addEventListener('appinstalled', () => {
+            showToast("✅ Ứng dụng đã được cài đặt");
+            document.getElementById('installBtn').style.display = 'none';
         });
 
         // Đăng ký Service Worker
@@ -500,12 +465,10 @@ window.addEventListener('appinstalled', () => {
         // ================== DATA ==================
         const BANK_ID = "970415";
         const ACCOUNT = "104883544991";
-        const NAME    = "LE DUC HUY";
+        const NAME = "LE DUC HUY";
         const EXPIRE_TIME = 5 * 60 * 1000;
-
         let currentContent = "LEHUY-" + Math.random().toString(36).slice(2,10).toUpperCase();
         let currentAmount = 0;
-
         document.getElementById("contentText").innerText = currentContent;
         updateAmountDisplay();
 
@@ -608,10 +571,8 @@ window.addEventListener('appinstalled', () => {
             document.getElementById("timerLabel").innerText = "QR đã hết hạn";
             document.getElementById("timerTime").innerText = "";
             document.getElementById("timerBar").style.width = "0%";
-
             qrContainer.classList.add("expired");
             qrContainer.innerHTML = `<div style="padding: 20px;">${reason}<br><br>Vui lòng tạo QR mới bằng cách thay đổi nội dung & số tiền trong menu.</div>`;
-
             document.querySelectorAll(".copy-btn").forEach(btn => btn.disabled = true);
             document.getElementById("downloadBtn").disabled = true;
         }
@@ -623,7 +584,6 @@ window.addEventListener('appinstalled', () => {
         const dpr = window.devicePixelRatio || 1;
         c.width = size * dpr; c.height = size * dpr;
         ctx.scale(dpr, dpr);
-
         const colors = ["rgba(255,255,255,1)", "rgba(230,230,230,.95)", "rgba(210,190,255,.95)"];
         let running = true;
 
@@ -634,7 +594,6 @@ window.addEventListener('appinstalled', () => {
             ctx.beginPath();
             ctx.arc(size/2, size/2, size/2-2, 0, Math.PI*2);
             ctx.clip();
-
             const bolts = Math.floor(Math.random()*10)+1;
             for(let b=0; b<bolts; b++){
                 let x = Math.random()*size;
@@ -668,9 +627,7 @@ window.addEventListener('appinstalled', () => {
                 const response = await fetch(qrImg.src);
                 const blob = await response.blob();
                 const file = new File([blob], `qr-lehuy-${currentContent}.png`, { type: 'image/png' });
-
                 const shareText = `Chuyển khoản cho LE DUC HUY\nSố TK: ${ACCOUNT}\nNội dung: ${currentContent}${currentAmount > 0 ? `\nSố tiền: ${currentAmount.toLocaleString('vi-VN')} VNĐ` : ''}\n\nDùng QR này để chuyển nhanh nhé!`;
-
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({
                         title: 'QR Chuyển Khoản Lehuy',
@@ -690,13 +647,11 @@ window.addEventListener('appinstalled', () => {
                     showToast("QR đã tải");
                     alert("Không share file trực tiếp được.\nQR tải về máy → mở Messenger → chọn chat → đính kèm ảnh QR.");
                 }
-
                 // Blacklist QR ngay lập tức
                 if (!isUsed) {
                     isUsed = true;
                     expireQR("QR đã bị blacklist (đã tải)");
                 }
-
                 // Lưu lịch sử
                 saveHistory();
             } catch (err) {
@@ -706,10 +661,9 @@ window.addEventListener('appinstalled', () => {
         }
 
         // ================== MENU & MODAL ==================
-        const menuBtn   = document.getElementById("menuBtn");
+        const menuBtn = document.getElementById("menuBtn");
         const menuModal = document.getElementById("menuModal");
         const closeMenu = document.getElementById("closeMenu");
-
         menuBtn.onclick = () => menuModal.style.display = "flex";
         closeMenu.onclick = () => menuModal.style.display = "none";
 
@@ -728,10 +682,10 @@ window.addEventListener('appinstalled', () => {
         };
 
         document.getElementById("cancelEdit").onclick = () => editModal.style.display = "none";
+
         document.getElementById("saveEdit").onclick = () => {
             const newContentVal = document.getElementById("newContent").value.trim();
             let newAmountVal = parseInt(document.getElementById("newAmount").value) || 0;
-
             if (newContentVal.length < 4) {
                 alert("Nội dung quá ngắn (tối thiểu 4 ký tự)!");
                 return;
@@ -740,30 +694,62 @@ window.addEventListener('appinstalled', () => {
                 alert("Số tiền phải từ 1.000 VNĐ đến dưới 10 tỷ VNĐ!");
                 return;
             }
-
             currentContent = newContentVal;
             currentAmount = newAmountVal;
-
             document.getElementById("contentText").innerText = currentContent;
             updateAmountDisplay();
-
             qrUrl = generateQRUrl();
             qrContainer.classList.remove("expired", "loading");
             qrContainer.innerHTML = '<img id="qrImg" alt="QR Code">';
             const newQrImg = document.getElementById("qrImg");
             newQrImg.onload = () => qrContainer.classList.remove("loading");
             newQrImg.src = qrUrl;
-
             editModal.style.display = "none";
             showToast("Đã cập nhật QR mới");
-
             isUsed = false;
             start = Date.now();
             tick();
             document.querySelectorAll(".copy-btn").forEach(btn => btn.disabled = false);
             document.getElementById("downloadBtn").disabled = false;
-
             saveHistory();
+        };
+
+        // === CHỨC NĂNG MỚI: TẠO QR RANDOM ===
+        document.getElementById("generateNewRandom").onclick = () => {
+            menuModal.style.display = "none";
+
+            // Tạo nội dung random mới
+            currentContent = "LEHUY-" + Math.random().toString(36).slice(2,10).toUpperCase();
+
+            // Giữ nguyên số tiền hiện tại (bỏ comment dòng dưới nếu muốn reset về 0)
+            // currentAmount = 0;
+
+            // Cập nhật hiển thị
+            document.getElementById("contentText").innerText = currentContent;
+            updateAmountDisplay();
+
+            // Tạo QR mới
+            qrUrl = generateQRUrl();
+            qrContainer.classList.remove("expired", "loading");
+            qrContainer.innerHTML = '<img id="qrImg" alt="QR Code">';
+
+            const newQrImg = document.getElementById("qrImg");
+            newQrImg.onload = () => qrContainer.classList.remove("loading");
+            newQrImg.src = qrUrl;
+
+            // Reset trạng thái
+            isUsed = false;
+            start = Date.now();
+            tick();
+
+            // Bật lại các nút
+            document.querySelectorAll(".copy-btn").forEach(btn => btn.disabled = false);
+            document.getElementById("downloadBtn").disabled = false;
+
+            // Lưu lịch sử
+            saveHistory();
+
+            showToast("Đã tạo QR mới với nội dung random!");
         };
 
         document.getElementById("showHistory").onclick = () => {
@@ -780,11 +766,8 @@ window.addEventListener('appinstalled', () => {
             menuModal.style.display = "none";
             document.getElementById("guideModal").style.display = "flex";
         };
-        document.getElementById("closeGuide").onclick = () => document.getElementById("guideModal").style.display = "none";
 
-        
+        document.getElementById("closeGuide").onclick = () => document.getElementById("guideModal").style.display = "none";
     </script>
 </body>
 </html>
-
-
