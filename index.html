@@ -510,33 +510,48 @@
         closeMenu.onclick = () => menuModal.style.display = "none";
 
         // 1. Lưu & Share
-        document.getElementById("saveAndShare").onclick = async () => {
-            menuModal.style.display = "none";
-            try {
-                const response = await fetch(qrImg.src);
-                const blob = await response.blob();
-                const file = new File([blob], `qr-lehuy-${currentContent}.png`, { type: 'image/png' });
+document.getElementById("saveAndShare").onclick = async () => {
+    menuModal.style.display = "none";
 
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: 'QR Chuyển Khoản Lehuy',
-                        text: 'Chia sẻ QR chuyển khoản cho bạn bè!'
-                    });
-                } else {
-                    // Fallback: tải về rồi hướng dẫn chia sẻ thủ công
-                    downloadQR();
-                    alert("Trình duyệt không hỗ trợ chia sẻ file. Đã tải QR về máy.\n\n→ Mở Messenger → chọn cuộc chat → đính kèm ảnh vừa tải để gửi.");
-                }
+    try {
+        // Lấy blob của QR
+        const response = await fetch(qrImg.src);
+        const blob = await response.blob();
+        const file = new File([blob], `qr-lehuy-${currentContent}.png`, { type: 'image/png' });
 
-                if (!isUsed) {
-                    isUsed = true;
-                    expireQR(); // Hết hạn sau khi share/tải
-                }
-            } catch (e) {
-                alert("Lỗi khi chia sẻ: " + e.message + "\n\nVui lòng tải thủ công và chia sẻ.");
-            }
+        const shareData = {
+            title: 'QR Chuyển Khoản Lehuy',
+            text: `Chuyển khoản cho LE DUC HUY\nSố TK: ${ACCOUNT}\nNội dung: ${currentContent}\n\nDùng QR này để chuyển nhanh nhé!`,
+            files: [file]
         };
+
+        // Kiểm tra hỗ trợ share file
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share(shareData);
+        } else {
+            // Fallback: chỉ share text + hướng dẫn
+            await navigator.share({
+                title: shareData.title,
+                text: shareData.text + "\n\n(Ảnh QR đã được tải về máy - mở Messenger → đính kèm ảnh để gửi)",
+                url: window.location.href // hoặc bỏ nếu không cần
+            });
+            // Tải về làm fallback
+            downloadQR(false);
+        }
+
+        // Đánh dấu đã dùng → hết hạn QR
+        if (!isUsed) {
+            isUsed = true;
+            expireQR();
+        }
+
+    } catch (err) {
+        console.error("Lỗi chia sẻ:", err);
+        // Fallback mạnh: tải về + alert hướng dẫn
+        downloadQR(false);
+        alert("Không thể chia sẻ trực tiếp.\n\n→ QR đã được tải về máy.\n→ Mở Messenger → chọn cuộc chat → đính kèm ảnh QR vừa tải để gửi nhanh.");
+    }
+};
 
         // 2. Sửa nội dung
         const editModal = document.getElementById("editModal");
