@@ -782,14 +782,9 @@ window.addEventListener('appinstalled', () => {
         };
         document.getElementById("closeGuide").onclick = () => document.getElementById("guideModal").style.display = "none";
 
-        // ================== ANTI DEVTOOLS ==================
-        document.addEventListener("keydown", e => {
-            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I","J","C"].includes(e.key.toUpperCase())) || (e.ctrlKey && e.key.toUpperCase()==="U")) {
-                e.preventDefault();
-            }
-        });
-        document.addEventListener("contextmenu", e => e.preventDefault());
+        
     </script>
 </body>
 </html>
+
 
