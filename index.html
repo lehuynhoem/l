@@ -8,6 +8,10 @@
     <meta name="description" content="Công cụ tạo QR chuyển khoản nhanh cho LE DUC HUY">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
+
+    <link id="favicon" rel="icon" href="icon-192.png" type="image/png">
+
+
     <title>Admin - QR Chuyển Khoản Lehuy</title>
     <link rel="preload" as="image" href="avatar.webp">
     <link rel="preload" as="image" href="01.gif">
@@ -811,21 +815,76 @@ const progressBar = document.getElementById("progressBar");
 let audio = new Audio();
 let currentTrackIndex = 0;
 let isPlaying = false;
-let musicList = [
-    // Đổi tên file nhạc thật của bạn ở đây (cùng thư mục với HTML)
-    { title: "幻昼", file: "幻昼.mp3" },
-    { title: "Anh Tấy Nhớ Em ", file: "arne.mp3" },
-    { title: "Kí Ức", file: "kiuc.mp3" },
-    { title: "Nửa Trái Tim", file: "tim.mp3" },
-    { title: "Điều Tốt Nhất Của Tôi", file: "[Vietsub_Pinyin] Điều Tốt Nhất Của Tôi & 50 Feet 《最好的我 & 50 Feet》 - 3h.TrungHoa.mp3" },
-    { title: "Tinh Vệ", file: "TINH VỆ (精卫) - JAPANDEE REMIX - JAPANDEE OFFICIAL.mp3" },
-    { title: "Có Thể Hay Không", file: "[Vietsub] Có Thể Hay Không_可不可以 - Trương Tử Hào_張紫豪 - Cách Cách.mp3" },
-    { title: "Fatal Love", file: "♪Lyric♪ Fatal Love - Jori King  “Tôi muốn nhận lấy tình yêu điên cuồng đó!” - Miêu.mp3" },
-   
+// Thêm vào đầu phần music player (sau let audio = new Audio();)
+const pageTitle = document.title;               // Lưu tiêu đề gốc
+const faviconLink = document.getElementById("favicon");
 
-    // Thêm bài khác nếu muốn, ví dụ:
-    // { title: "Tên bài hát", file: "tenfile.mp3" },
+// Danh sách nhạc (bạn đã có) - bổ sung trường icon nếu muốn ảnh riêng cho từng bài
+let musicList = [
+    { 
+        title: "幻昼", 
+        file: "幻昼.mp3",
+        icon: "music-icon-1.png"   // (tùy chọn) ảnh riêng cho bài này
+    },
+    { 
+        title: "Anh Tấy Nhớ Em ", 
+        file: "arne.mp3",
+        icon: "music-icon-2.png"
+    },
+    { 
+        title: "Kí Ức", 
+        file: "kiuc.mp3",
+        icon: "music-icon-3.png"
+    },
+    { 
+        title: "Nửa Trái Tim", 
+        file: "tim.mp3",
+        icon: "music-icon-4.png"
+    },
+    { 
+        title: "Điều Tốt Nhất Của Tôi", 
+        file: "[Vietsub_Pinyin] Điều Tốt Nhất Của Tôi & 50 Feet 《最好的我 & 50 Feet》 - 3h.TrungHoa.mp3",
+        icon: "music-icon-5.png"
+    },
+    { 
+        title: "Tinh Vệ", 
+        file: "TINH VỆ (精卫) - JAPANDEE REMIX - JAPANDEE OFFICIAL.mp3",
+        icon: "music-icon-6.png"
+    },
+    { 
+        title: "Fatal Love", 
+        file: "♪Lyric♪ Fatal Love - Jori King  “Tôi muốn nhận lấy tình yêu điên cuồng đó!” - Miêu.mp3",
+        icon: "music-icon-7.png"
+    },
+    { 
+        title: "Có Thể Hay Không", 
+        file: "[Vietsub] Có Thể Hay Không_可不可以 - Trương Tử Hào_張紫豪 - Cách Cách.mp3",
+        icon: "music-icon-8.png"
+    },
+
+    // ... các bài khác
+    // Nếu không có ảnh riêng → để trống hoặc dùng icon chung
 ];
+
+// Hàm cập nhật tiêu đề + favicon
+function updateMediaTitle() {
+    if (isPlaying && currentTrackIndex >= 0 && currentTrackIndex < musicList.length) {
+        const track = musicList[currentTrackIndex];
+        document.title = `Đang phát: ${track.title} 🎵`;
+        
+        // Nếu có icon riêng cho bài hát → dùng nó
+        if (track.icon) {
+            faviconLink.href = track.icon;
+        } else {
+            // Icon chung khi phát nhạc (tạo file music-playing.png hoặc dùng icon mặc định)
+            faviconLink.href = "music-playing.png"; // hoặc giữ nguyên: "icon-192.png"
+        }
+    } else {
+        // Khi dừng hoặc chưa phát
+        document.title = pageTitle;
+        faviconLink.href = "icon-192.png"; // quay về icon gốc
+    }
+}
 
 // Tự động tạo list nhạc trong modal
 function renderMusicList() {
@@ -857,6 +916,24 @@ function playTrack() {
     audio.load();
     
     nowPlayingEl.textContent = `Đang phát: ${track.title}`;
+    function playTrack() {
+    if (currentTrackIndex < 0 || currentTrackIndex >= musicList.length) return;
+    
+    const track = musicList[currentTrackIndex];
+    audio.src = track.file;
+    audio.load();
+    
+    nowPlayingEl.textContent = `Đang phát: ${track.title}`;
+    renderMusicList();
+    
+    if (isPlaying) {
+        audio.play().catch(e => console.log("Play error:", e));
+        playPauseBtn.textContent = "⏸ Pause";
+    }
+
+    // Thêm dòng này
+    updateMediaTitle();
+}
     renderMusicList();
     
     if (isPlaying) {
@@ -880,21 +957,25 @@ audio.addEventListener("ended", () => {
 
 playPauseBtn.onclick = () => {
     if (audio.src === "") {
-        playTrack(); // lần đầu bấm play
+        playTrack(); 
+        updateMediaTitle(); // thêm
     } else if (isPlaying) {
         audio.pause();
         playPauseBtn.textContent = "▶ Play";
         isPlaying = false;
+        updateMediaTitle(); // thêm - quay về tiêu đề gốc
     } else {
         audio.play().catch(e => console.log("Play error:", e));
         playPauseBtn.textContent = "⏸ Pause";
         isPlaying = true;
+        updateMediaTitle(); // thêm
     }
 };
 
 prevBtn.onclick = () => {
     currentTrackIndex = (currentTrackIndex - 1 + musicList.length) % musicList.length;
     playTrack();
+    // updateMediaTitle() đã được gọi trong playTrack()
 };
 
 nextBtn.onclick = () => {
@@ -907,7 +988,11 @@ document.getElementById("closeMusic").onclick = () => {
     // Không pause nhạc khi đóng modal → phát nền tiếp tục
     // Nếu muốn pause khi đóng thì thêm: audio.pause(); isPlaying = false; playPauseBtn.textContent = "▶ Play";
 };
-
+window.addEventListener("load", () => {
+    currentTrackIndex = 0;
+    playTrack();
+    // updateMediaTitle() đã được gọi trong playTrack()
+});
 // Mở modal nhạc từ menu
 document.getElementById("musicPlayer").onclick = () => {
     menuModal.style.display = "none";
