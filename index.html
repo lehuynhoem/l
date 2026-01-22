@@ -8,7 +8,7 @@
     <meta name="description" content="Công cụ tạo QR chuyển khoản nhanh cho LE DUC HUY">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <title>Admin - Chuyển Khoản </title>
+    <title>Admin - QR Chuyển Khoản Lehuy</title>
     <link rel="preload" as="image" href="avatar.webp">
     <link rel="preload" as="image" href="01.gif">
     <style>
@@ -374,18 +374,20 @@
     <div class="menu-modal" id="menuModal">
         <div class="menu-close-area" id="closeMenu"></div>
         <div class="menu-box">
-            <div class="menu-item" id="saveAndShare">📤 Lưu QR & Share Mess</div>
-            <div class="menu-item" id="editContent">✏️ Thay đổi nd & tiền </div>
-            <div class="menu-item" id="generateNewRandom">🔄 Tạo QR mới </div>
-            <div class="menu-item" id="showHistory">📜 Lịch sử </div>
-            <div class="menu-item" id="showGuide">❓ HDSD </div>
+            <div class="menu-item" id="saveAndShare">📤 Lưu QR & Chia sẻ Messenger</div>
+            <div class="menu-item" id="editContent">✏️ Thay đổi nội dung & số tiền</div>
+            <div class="menu-item" id="generateNewRandom">🔄 Tạo QR mới (nội dung random)</div>
+            <div class="menu-item" id="showHistory">📜 Lịch sử QR đã tạo</div>
+            <div class="menu-item" id="showGuide">❓ Hướng dẫn sử dụng</div>
+            <!-- Trong phần <div class="menu-box"> ... -->
+            <div class="menu-item" id="musicPlayer">🎵 Phát nhạc nền</div>
         </div>
     </div>
 
     <!-- Modal sửa nội dung + số tiền -->
     <div id="editModal">
         <div class="edit-box">
-            <h3>Thay đổi nd & số tiền </h3>
+            <h3>Thay đổi nội dung & số tiền chuyển khoản</h3>
             <input type="text" id="newContent" placeholder="Ví dụ: LEHUY-ABC123" maxlength="50">
             <input type="number" id="newAmount" placeholder="Số tiền (VNĐ, ví dụ 100000)" min="1000" step="1000">
             <small style="color:#94a3b8; display:block;">Để trống số tiền nếu không yêu cầu cụ thể.</small>
@@ -410,7 +412,7 @@
     <!-- Modal hướng dẫn -->
     <div id="guideModal">
         <div class="guide-box">
-            <h3>HDSD QR</h3>
+            <h3>Hướng dẫn sử dụng QR</h3>
             <ul>
                 <li>1. Sao chép số tài khoản, nội dung & số tiền (nếu có)</li>
                 <li>2. Mở app ngân hàng → Chuyển khoản</li>
@@ -426,6 +428,33 @@
             </div>
         </div>
     </div>
+            <!-- Modal Phát nhạc -->
+<div id="musicModal" class="history-modal">  <!-- dùng lại class để style tương tự -->
+    <div class="history-box" style="max-width: 360px;">
+        <h3 style="margin:0 0 16px; text-align:center;">🎧 Music Player - Lehuy</h3>
+        
+        <div style="text-align:center; margin-bottom:16px;">
+            <div id="nowPlaying" style="font-weight:bold; color:#fbbf24; margin-bottom:8px;">Đang phát: -</div>
+            <div id="musicProgress" style="height:6px; background:#334155; border-radius:3px; overflow:hidden; margin:12px 0;">
+                <div id="progressBar" style="width:0%; height:100%; background:#3b82f6; transition:width 0.2s;"></div>
+            </div>
+            <div style="display:flex; justify-content:center; gap:20px; margin:16px 0;">
+                <button id="prevBtn" class="btn btn-secondary">⏮ Prev</button>
+                <button id="playPauseBtn" class="btn btn-primary" style="width:90px;">▶ Play</button>
+                <button id="nextBtn" class="btn btn-secondary">Next ⏭</button>
+            </div>
+        </div>
+
+        <div id="musicList" style="max-height:220px; overflow-y:auto; margin-bottom:16px;"></div>
+
+        <div style="text-align:center;">
+            <button class="btn btn-primary" id="closeMusic">Đóng</button>
+        </div>
+    </div>
+</div>
+
+
+
 
     <div class="toast" id="toast">Đã sao chép ✔</div>
     <!-- Nút gợi ý cài đặt PWA -->
@@ -768,7 +797,137 @@
         };
 
         document.getElementById("closeGuide").onclick = () => document.getElementById("guideModal").style.display = "none";
-    </script>
+   
+   
+   // ================== MUSIC PLAYER ==================
+const musicModal = document.getElementById("musicModal");
+const musicListEl = document.getElementById("musicList");
+const nowPlayingEl = document.getElementById("nowPlaying");
+const playPauseBtn = document.getElementById("playPauseBtn");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const progressBar = document.getElementById("progressBar");
+
+let audio = new Audio();
+let currentTrackIndex = 0;
+let isPlaying = false;
+let musicList = [
+    // Đổi tên file nhạc thật của bạn ở đây (cùng thư mục với HTML)
+    { title: "幻昼", file: "幻昼.mp3" },
+    { title: "Anh Tấy Nhớ Em ", file: "arne.mp3" },
+    { title: "Kí Ức", file: "kiuc.mp3" },
+    { title: "Nửa Trái Tim", file: "tim.mp3" },
+    { title: "Điều Tốt Nhất Của Tôi", file: "[Vietsub_Pinyin] Điều Tốt Nhất Của Tôi & 50 Feet 《最好的我 & 50 Feet》 - 3h.TrungHoa.mp3" },
+    { title: "Tinh Vệ", file: "TINH VỆ (精卫) - JAPANDEE REMIX - JAPANDEE OFFICIAL.mp3" },
+    { title: "Có Thể Hay Không", file: "[Vietsub] Có Thể Hay Không_可不可以 - Trương Tử Hào_張紫豪 - Cách Cách.mp3" },
+    { title: "Fatal Love", file: "♪Lyric♪ Fatal Love - Jori King  “Tôi muốn nhận lấy tình yêu điên cuồng đó!” - Miêu.mp3" },
+   
+
+    // Thêm bài khác nếu muốn, ví dụ:
+    // { title: "Tên bài hát", file: "tenfile.mp3" },
+];
+
+// Tự động tạo list nhạc trong modal
+function renderMusicList() {
+    musicListEl.innerHTML = "";
+    musicList.forEach((track, index) => {
+        const item = document.createElement("div");
+        item.style.padding = "10px 16px";
+        item.style.borderBottom = "1px solid #334155";
+        item.style.cursor = "pointer";
+        item.style.background = index === currentTrackIndex ? "rgba(59,130,246,0.15)" : "transparent";
+        item.innerHTML = `${index + 1}. ${track.title}`;
+        
+        item.onclick = () => {
+            currentTrackIndex = index;
+            playTrack();
+            renderMusicList(); // highlight bài đang phát
+        };
+        
+        musicListEl.appendChild(item);
+    });
+}
+
+// Phát bài hát
+function playTrack() {
+    if (currentTrackIndex < 0 || currentTrackIndex >= musicList.length) return;
+    
+    const track = musicList[currentTrackIndex];
+    audio.src = track.file;  // giả sử file nằm cùng thư mục
+    audio.load();
+    
+    nowPlayingEl.textContent = `Đang phát: ${track.title}`;
+    renderMusicList();
+    
+    if (isPlaying) {
+        audio.play().catch(e => console.log("Play error:", e));
+        playPauseBtn.textContent = "⏸ Pause";
+    }
+}
+
+function updateProgress() {
+    if (!audio.duration) return;
+    const percent = (audio.currentTime / audio.duration) * 100;
+    progressBar.style.width = percent + "%";
+}
+
+audio.addEventListener("timeupdate", updateProgress);
+audio.addEventListener("ended", () => {
+    // Tự động next khi hết bài
+    currentTrackIndex = (currentTrackIndex + 1) % musicList.length;
+    playTrack();
+});
+
+playPauseBtn.onclick = () => {
+    if (audio.src === "") {
+        playTrack(); // lần đầu bấm play
+    } else if (isPlaying) {
+        audio.pause();
+        playPauseBtn.textContent = "▶ Play";
+        isPlaying = false;
+    } else {
+        audio.play().catch(e => console.log("Play error:", e));
+        playPauseBtn.textContent = "⏸ Pause";
+        isPlaying = true;
+    }
+};
+
+prevBtn.onclick = () => {
+    currentTrackIndex = (currentTrackIndex - 1 + musicList.length) % musicList.length;
+    playTrack();
+};
+
+nextBtn.onclick = () => {
+    currentTrackIndex = (currentTrackIndex + 1) % musicList.length;
+    playTrack();
+};
+
+document.getElementById("closeMusic").onclick = () => {
+    musicModal.style.display = "none";
+    // Không pause nhạc khi đóng modal → phát nền tiếp tục
+    // Nếu muốn pause khi đóng thì thêm: audio.pause(); isPlaying = false; playPauseBtn.textContent = "▶ Play";
+};
+
+// Mở modal nhạc từ menu
+document.getElementById("musicPlayer").onclick = () => {
+    menuModal.style.display = "none";
+    musicModal.style.display = "flex";
+    renderMusicList();
+    
+    // Nếu chưa phát bài nào → tự động chọn bài đầu
+    if (!audio.src) {
+        currentTrackIndex = 0;
+        playTrack();
+    }
+};
+
+// Optional: Phát nhạc ngay khi vào trang (nếu muốn)
+ window.addEventListener("load", () => {
+     currentTrackIndex = 0;
+     playTrack();
+ });
+   
+   
+   </script>
 </body>
 </html>
-
