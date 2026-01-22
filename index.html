@@ -8,10 +8,7 @@
     <meta name="description" content="Công cụ tạo QR chuyển khoản nhanh cho LE DUC HUY">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-
     <link id="favicon" rel="icon" href="icon-192.png" type="image/png">
-
-
     <title>Admin - QR Chuyển Khoản Lehuy</title>
     <link rel="preload" as="image" href="avatar.webp">
     <link rel="preload" as="image" href="01.gif">
@@ -372,6 +369,12 @@
             <div class="timer-text" id="timerLabel">Mã hết hạn sau:</div>
             <div class="timer-time" id="timerTime"></div>
         </div>
+        <div id="miniPlayer" style="margin-top: 16px; display: flex; justify-content: center; gap: 20px; opacity: 0.85;">
+            <button id="miniPrev" class="copy-btn copy-mini">⏮</button>
+            <button id="miniPlayPause" class="copy-btn" style="width: 80px;">▶ Play</button>
+            <button id="miniNext" class="copy-btn copy-mini">⏭</button>
+            <button id="openMusicModal" class="copy-btn copy-mini">🎵</button>
+        </div>
     </div>
 
     <!-- Menu 3 chấm -->
@@ -383,7 +386,6 @@
             <div class="menu-item" id="generateNewRandom">🔄 Tạo QR mới (nội dung random)</div>
             <div class="menu-item" id="showHistory">📜 Lịch sử QR đã tạo</div>
             <div class="menu-item" id="showGuide">❓ Hướng dẫn sử dụng</div>
-            <!-- Trong phần <div class="menu-box"> ... -->
             <div class="menu-item" id="musicPlayer">🎵 Phát nhạc nền</div>
         </div>
     </div>
@@ -432,33 +434,31 @@
             </div>
         </div>
     </div>
-            <!-- Modal Phát nhạc -->
-<div id="musicModal" class="history-modal">  <!-- dùng lại class để style tương tự -->
-    <div class="history-box" style="max-width: 360px;">
-        <h3 style="margin:0 0 16px; text-align:center;">🎧 Music Player - Lehuy</h3>
-        
-        <div style="text-align:center; margin-bottom:16px;">
-            <div id="nowPlaying" style="font-weight:bold; color:#fbbf24; margin-bottom:8px;">Đang phát: -</div>
-            <div id="musicProgress" style="height:6px; background:#334155; border-radius:3px; overflow:hidden; margin:12px 0;">
-                <div id="progressBar" style="width:0%; height:100%; background:#3b82f6; transition:width 0.2s;"></div>
-            </div>
-            <div style="display:flex; justify-content:center; gap:20px; margin:16px 0;">
-                <button id="prevBtn" class="btn btn-secondary">⏮ Prev</button>
-                <button id="playPauseBtn" class="btn btn-primary" style="width:90px;">▶ Play</button>
-                <button id="nextBtn" class="btn btn-secondary">Next ⏭</button>
-            </div>
-        </div>
 
-        <div id="musicList" style="max-height:220px; overflow-y:auto; margin-bottom:16px;"></div>
+    <!-- Modal Phát nhạc -->
+    <div id="musicModal" class="history-modal">  <!-- dùng lại class để style tương tự -->
+        <div class="history-box" style="max-width: 360px;">
+            <h3 style="margin:0 0 16px; text-align:center;">🎧 Music Player - Lehuy</h3>
+            
+            <div style="text-align:center; margin-bottom:16px;">
+                <div id="nowPlaying" style="font-weight:bold; color:#fbbf24; margin-bottom:8px;">Đang phát: -</div>
+                <div id="musicProgress" style="height:6px; background:#334155; border-radius:3px; overflow:hidden; margin:12px 0;">
+                    <div id="progressBar" style="width:0%; height:100%; background:#3b82f6; transition:width 0.2s;"></div>
+                </div>
+                <div style="display:flex; justify-content:center; gap:20px; margin:16px 0;">
+                    <button id="prevBtn" class="btn btn-secondary">⏮ Prev</button>
+                    <button id="playPauseBtn" class="btn btn-primary" style="width:90px;">▶ Play</button>
+                    <button id="nextBtn" class="btn btn-secondary">Next ⏭</button>
+                </div>
+            </div>
 
-        <div style="text-align:center;">
-            <button class="btn btn-primary" id="closeMusic">Đóng</button>
+            <div id="musicList" style="max-height:220px; overflow-y:auto; margin-bottom:16px;"></div>
+
+            <div style="text-align:center;">
+                <button class="btn btn-primary" id="closeMusic">Đóng</button>
+            </div>
         </div>
     </div>
-</div>
-
-
-
 
     <div class="toast" id="toast">Đã sao chép ✔</div>
     <!-- Nút gợi ý cài đặt PWA -->
@@ -802,217 +802,226 @@
 
         document.getElementById("closeGuide").onclick = () => document.getElementById("guideModal").style.display = "none";
    
-   
-   // ================== MUSIC PLAYER ==================
-const musicModal = document.getElementById("musicModal");
-const musicListEl = document.getElementById("musicList");
-const nowPlayingEl = document.getElementById("nowPlaying");
-const playPauseBtn = document.getElementById("playPauseBtn");
-const prevBtn = document.getElementById("prevBtn");
-const nextBtn = document.getElementById("nextBtn");
-const progressBar = document.getElementById("progressBar");
+        // ================== MUSIC PLAYER ==================
+        const musicModal = document.getElementById("musicModal");
+        const musicListEl = document.getElementById("musicList");
+        const nowPlayingEl = document.getElementById("nowPlaying");
+        const playPauseBtn = document.getElementById("playPauseBtn");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const progressBar = document.getElementById("progressBar");
 
-let audio = new Audio();
-let currentTrackIndex = 0;
-let isPlaying = false;
-// Thêm vào đầu phần music player (sau let audio = new Audio();)
-const pageTitle = document.title;               // Lưu tiêu đề gốc
-const faviconLink = document.getElementById("favicon");
+        let audio = new Audio();
+        let currentTrackIndex = 0;
+        let isPlaying = false;
+        const pageTitle = document.title;               // Lưu tiêu đề gốc
+        const faviconLink = document.getElementById("favicon");
 
-// Danh sách nhạc (bạn đã có) - bổ sung trường icon nếu muốn ảnh riêng cho từng bài
-let musicList = [
-    { 
-        title: "幻昼", 
-        file: "幻昼.mp3",
-        icon: "music-icon-1.png"   // (tùy chọn) ảnh riêng cho bài này
-    },
-    { 
-        title: "Anh Tấy Nhớ Em ", 
-        file: "arne.mp3",
-        icon: "music-icon-2.png"
-    },
-    { 
-        title: "Kí Ức", 
-        file: "kiuc.mp3",
-        icon: "music-icon-3.png"
-    },
-    { 
-        title: "Nửa Trái Tim", 
-        file: "tim.mp3",
-        icon: "music-icon-4.png"
-    },
-    { 
-        title: "Điều Tốt Nhất Của Tôi", 
-        file: "[Vietsub_Pinyin] Điều Tốt Nhất Của Tôi & 50 Feet 《最好的我 & 50 Feet》 - 3h.TrungHoa.mp3",
-        icon: "music-icon-5.png"
-    },
-    { 
-        title: "Tinh Vệ", 
-        file: "TINH VỆ (精卫) - JAPANDEE REMIX - JAPANDEE OFFICIAL.mp3",
-        icon: "music-icon-6.png"
-    },
-    { 
-        title: "Fatal Love", 
-        file: "♪Lyric♪ Fatal Love - Jori King  “Tôi muốn nhận lấy tình yêu điên cuồng đó!” - Miêu.mp3",
-        icon: "music-icon-7.png"
-    },
-    { 
-        title: "Có Thể Hay Không", 
-        file: "[Vietsub] Có Thể Hay Không_可不可以 - Trương Tử Hào_張紫豪 - Cách Cách.mp3",
-        icon: "music-icon-8.png"
-    },
+        let musicList = [
+            { 
+                title: "幻昼", 
+                file: "幻昼.mp3",
+                icon: "music-icon-1.png"
+            },
+            { 
+                title: "Anh Tấy Nhớ Em ", 
+                file: "arne.mp3",
+                icon: "music-icon-2.png"
+            },
+            { 
+                title: "Kí Ức", 
+                file: "kiuc.mp3",
+                icon: "music-icon-3.png"
+            },
+            { 
+                title: "Nửa Trái Tim", 
+                file: "tim.mp3",
+                icon: "music-icon-4.png"
+            },
+            { 
+                title: "Điều Tốt Nhất Của Tôi", 
+                file: "[Vietsub_Pinyin] Điều Tốt Nhất Của Tôi & 50 Feet 《最好的我 & 50 Feet》 - 3h.TrungHoa.mp3",
+                icon: "music-icon-5.png"
+            },
+            { 
+                title: "Tinh Vệ", 
+                file: "TINH VỆ (精卫) - JAPANDEE REMIX - JAPANDEE OFFICIAL.mp3",
+                icon: "music-icon-6.png"
+            },
+            { 
+                title: "Có Thể Hay Không", 
+                file: "[Vietsub] Có Thể Hay Không_可不可以 - Trương Tử Hào_張紫豪 - Cách Cách.mp3",
+                icon: "music-icon-7.png"
+            },
+            { 
+                title: "Fatal Love", 
+                file: "♪Lyric♪ Fatal Love - Jori King  “Tôi muốn nhận lấy tình yêu điên cuồng đó!” - Miêu.mp3",
+                icon: "music-icon-8.png"
+            },
+        ];
 
-    // ... các bài khác
-    // Nếu không có ảnh riêng → để trống hoặc dùng icon chung
-];
+        function updateMediaTitle() {
+            if (isPlaying && currentTrackIndex >= 0 && currentTrackIndex < musicList.length) {
+                const track = musicList[currentTrackIndex];
+                document.title = `Đang phát: ${track.title} 🎵`;
 
-// Hàm cập nhật tiêu đề + favicon
-function updateMediaTitle() {
-    if (isPlaying && currentTrackIndex >= 0 && currentTrackIndex < musicList.length) {
-        const track = musicList[currentTrackIndex];
-        document.title = `Đang phát: ${track.title} 🎵`;
-        
-        // Nếu có icon riêng cho bài hát → dùng nó
-        if (track.icon) {
-            faviconLink.href = track.icon;
-        } else {
-            // Icon chung khi phát nhạc (tạo file music-playing.png hoặc dùng icon mặc định)
-            faviconLink.href = "music-playing.png"; // hoặc giữ nguyên: "icon-192.png"
+                faviconLink.href = "music-playing.png?t=" + new Date().getTime();
+            } else {
+                document.title = pageTitle;
+                faviconLink.href = "icon-192.png?t=" + new Date().getTime();
+            }
         }
-    } else {
-        // Khi dừng hoặc chưa phát
-        document.title = pageTitle;
-        faviconLink.href = "icon-192.png"; // quay về icon gốc
-    }
-}
 
-// Tự động tạo list nhạc trong modal
-function renderMusicList() {
-    musicListEl.innerHTML = "";
-    musicList.forEach((track, index) => {
-        const item = document.createElement("div");
-        item.style.padding = "10px 16px";
-        item.style.borderBottom = "1px solid #334155";
-        item.style.cursor = "pointer";
-        item.style.background = index === currentTrackIndex ? "rgba(59,130,246,0.15)" : "transparent";
-        item.innerHTML = `${index + 1}. ${track.title}`;
-        
-        item.onclick = () => {
-            currentTrackIndex = index;
+        // Tự động tạo list nhạc trong modal
+        function renderMusicList() {
+            musicListEl.innerHTML = "";
+            musicList.forEach((track, index) => {
+                const item = document.createElement("div");
+                item.style.padding = "10px 16px";
+                item.style.borderBottom = "1px solid #334155";
+                item.style.cursor = "pointer";
+                item.style.background = index === currentTrackIndex ? "rgba(59,130,246,0.15)" : "transparent";
+                item.innerHTML = `${index + 1}. ${track.title}`;
+                
+                item.onclick = () => {
+                    currentTrackIndex = index;
+                    playTrack();
+                    renderMusicList(); // highlight bài đang phát
+                };
+                
+                musicListEl.appendChild(item);
+            });
+        }
+
+        // Phát bài hát
+        function playTrack() {
+            if (currentTrackIndex < 0 || currentTrackIndex >= musicList.length) return;
+
+            const track = musicList[currentTrackIndex];
+            audio.src = track.file;  // giả sử file nằm cùng thư mục
+            audio.load();
+            
+            nowPlayingEl.textContent = `Đang phát: ${track.title}`;
+            renderMusicList();
+            
+            if (isPlaying) {
+                audio.play().catch(e => console.log("Play error:", e));
+                playPauseBtn.textContent = "⏸ Pause";
+            }
+
+            updateMediaTitle();
+        }
+
+        function updateProgress() {
+            if (!audio.duration) return;
+            const percent = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = percent + "%";
+        }
+
+        audio.addEventListener("timeupdate", updateProgress);
+        audio.addEventListener("ended", () => {
+            // Tự động next khi hết bài
+            currentTrackIndex = (currentTrackIndex + 1) % musicList.length;
             playTrack();
-            renderMusicList(); // highlight bài đang phát
+        });
+
+        playPauseBtn.onclick = () => {
+            if (audio.src === "") {
+                playTrack(); // lần đầu bấm play
+            } else if (isPlaying) {
+                audio.pause();
+                playPauseBtn.textContent = "▶ Play";
+                isPlaying = false;
+            } else {
+                audio.play().catch(e => console.log("Play error:", e));
+                playPauseBtn.textContent = "⏸ Pause";
+                isPlaying = true;
+            }
+            updateMediaTitle();
         };
-        
-        musicListEl.appendChild(item);
-    });
-}
 
-// Phát bài hát
-function playTrack() {
-    if (currentTrackIndex < 0 || currentTrackIndex >= musicList.length) return;
-    
-    const track = musicList[currentTrackIndex];
-    audio.src = track.file;  // giả sử file nằm cùng thư mục
-    audio.load();
-    
-    nowPlayingEl.textContent = `Đang phát: ${track.title}`;
-    function playTrack() {
-    if (currentTrackIndex < 0 || currentTrackIndex >= musicList.length) return;
-    
-    const track = musicList[currentTrackIndex];
-    audio.src = track.file;
-    audio.load();
-    
-    nowPlayingEl.textContent = `Đang phát: ${track.title}`;
-    renderMusicList();
-    
-    if (isPlaying) {
-        audio.play().catch(e => console.log("Play error:", e));
-        playPauseBtn.textContent = "⏸ Pause";
-    }
+        prevBtn.onclick = () => {
+            currentTrackIndex = (currentTrackIndex - 1 + musicList.length) % musicList.length;
+            playTrack();
+        };
 
-    // Thêm dòng này
-    updateMediaTitle();
-}
-    renderMusicList();
-    
-    if (isPlaying) {
-        audio.play().catch(e => console.log("Play error:", e));
-        playPauseBtn.textContent = "⏸ Pause";
-    }
-}
+        nextBtn.onclick = () => {
+            currentTrackIndex = (currentTrackIndex + 1) % musicList.length;
+            playTrack();
+        };
 
-function updateProgress() {
-    if (!audio.duration) return;
-    const percent = (audio.currentTime / audio.duration) * 100;
-    progressBar.style.width = percent + "%";
-}
+        document.getElementById("closeMusic").onclick = () => {
+            musicModal.style.display = "none";
+            // Không pause nhạc khi đóng modal → phát nền tiếp tục
+            // Nếu muốn pause khi đóng thì thêm: audio.pause(); isPlaying = false; playPauseBtn.textContent = "▶ Play";
+        };
 
-audio.addEventListener("timeupdate", updateProgress);
-audio.addEventListener("ended", () => {
-    // Tự động next khi hết bài
-    currentTrackIndex = (currentTrackIndex + 1) % musicList.length;
-    playTrack();
-});
+        // Mở modal nhạc từ menu
+        document.getElementById("musicPlayer").onclick = () => {
+            menuModal.style.display = "none";
+            musicModal.style.display = "flex";
+            renderMusicList();
+            
+            // Nếu chưa phát bài nào → tự động chọn bài đầu
+            if (!audio.src) {
+                currentTrackIndex = 0;
+                playTrack();
+            }
+        };
 
-playPauseBtn.onclick = () => {
-    if (audio.src === "") {
-        playTrack(); 
-        updateMediaTitle(); // thêm
-    } else if (isPlaying) {
-        audio.pause();
-        playPauseBtn.textContent = "▶ Play";
-        isPlaying = false;
-        updateMediaTitle(); // thêm - quay về tiêu đề gốc
-    } else {
-        audio.play().catch(e => console.log("Play error:", e));
-        playPauseBtn.textContent = "⏸ Pause";
-        isPlaying = true;
-        updateMediaTitle(); // thêm
-    }
-};
+        // Optional: Phát nhạc ngay khi vào trang (nếu muốn)
+        window.addEventListener("load", () => {
+            currentTrackIndex = 0;
+            playTrack();
+        });
 
-prevBtn.onclick = () => {
-    currentTrackIndex = (currentTrackIndex - 1 + musicList.length) % musicList.length;
-    playTrack();
-    // updateMediaTitle() đã được gọi trong playTrack()
-};
+        // Mini player controls
+        const miniPlayPause = document.getElementById("miniPlayPause");
+        const miniPrev = document.getElementById("miniPrev");
+        const miniNext = document.getElementById("miniNext");
+        const openMusicModalBtn = document.getElementById("openMusicModal");
 
-nextBtn.onclick = () => {
-    currentTrackIndex = (currentTrackIndex + 1) % musicList.length;
-    playTrack();
-};
+        // Đồng bộ trạng thái play/pause với mini button
+        function syncMiniPlayer() {
+            miniPlayPause.textContent = isPlaying ? "⏸ Pause" : "▶ Play";
+        }
 
-document.getElementById("closeMusic").onclick = () => {
-    musicModal.style.display = "none";
-    // Không pause nhạc khi đóng modal → phát nền tiếp tục
-    // Nếu muốn pause khi đóng thì thêm: audio.pause(); isPlaying = false; playPauseBtn.textContent = "▶ Play";
-};
-window.addEventListener("load", () => {
-    currentTrackIndex = 0;
-    playTrack();
-    // updateMediaTitle() đã được gọi trong playTrack()
-});
-// Mở modal nhạc từ menu
-document.getElementById("musicPlayer").onclick = () => {
-    menuModal.style.display = "none";
-    musicModal.style.display = "flex";
-    renderMusicList();
-    
-    // Nếu chưa phát bài nào → tự động chọn bài đầu
-    if (!audio.src) {
-        currentTrackIndex = 0;
-        playTrack();
-    }
-};
+        audio.addEventListener("play", syncMiniPlayer);
+        audio.addEventListener("pause", syncMiniPlayer);
 
-// Optional: Phát nhạc ngay khi vào trang (nếu muốn)
- window.addEventListener("load", () => {
-     currentTrackIndex = 0;
-     playTrack();
- });
-   
-   
-   </script>
+        // Sự kiện mini buttons
+        miniPlayPause.onclick = () => {
+            if (isPlaying) {
+                audio.pause();
+            } else {
+                if (audio.src) {
+                    audio.play().catch(e => console.log(e));
+                } else {
+                    playTrack();  // Nếu chưa load bài nào
+                }
+            }
+            isPlaying = !audio.paused;
+            syncMiniPlayer();
+            updateMediaTitle();
+        };
+
+        miniPrev.onclick = () => {
+            currentTrackIndex = (currentTrackIndex - 1 + musicList.length) % musicList.length;
+            playTrack();
+            syncMiniPlayer();
+        };
+
+        miniNext.onclick = () => {
+            currentTrackIndex = (currentTrackIndex + 1) % musicList.length;
+            playTrack();
+            syncMiniPlayer();
+        };
+
+        openMusicModalBtn.onclick = () => {
+            musicModal.style.display = "flex";
+            renderMusicList();
+            syncMiniPlayer();  // Đồng bộ nếu cần
+        };
+    </script>
 </body>
 </html>
