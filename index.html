@@ -344,10 +344,10 @@
             </div>
         </div>
         <div class="info">
-            <b>🏧 Ngân hàng:</b> VietinBank<br>
-            <b>👤 Chủ TK:</b> LE DUC HUY (Admin)<br>
+            <b>🏧 Ngân hàng:</b> VietinBank <br>
+            <b>👤 Chủ TK:</b> LE THI NGOAN <br>
             <div class="row">
-                <div class="row-text">💳 <span id="accNumber">104883544991</span></div>
+                <div class="row-text">💳 <span id="accNumber">0915761042</span></div>
                 <button class="copy-btn copy-mini" onclick="copyText(document.getElementById('accNumber').innerText, true)">Sao chép</button>
             </div>
             <div class="row">
@@ -394,8 +394,8 @@
     <div id="editModal">
         <div class="edit-box">
             <h3>Thay đổi nội dung & số tiền chuyển khoản</h3>
-            <input type="text" id="newContent" placeholder="Ví dụ: LEHUY-ABC123" maxlength="50">
-            <input type="number" id="newAmount" placeholder="Số tiền (VNĐ, ví dụ 100000)" min="1000" step="1000">
+            <input type="text" id="newContent" placeholder="Ví dụ: NGOAN-ABC123" maxlength="50">
+            <input type="number" id="newAmount" placeholder="Số tiền (VNĐ, ví dụ 100000)" min="2000" step="2000">
             <small style="color:#94a3b8; display:block;">Để trống số tiền nếu không yêu cầu cụ thể.</small>
             <div class="edit-actions">
                 <button class="btn btn-secondary" id="cancelEdit">Hủy</button>
@@ -497,10 +497,10 @@
 
         // ================== DATA ==================
         const BANK_ID = "970415";
-        const ACCOUNT = "104883544991";
-        const NAME = "LE DUC HUY";
+        const ACCOUNT = "0915761042";
+        const NAME = "LE THI NGOAN";
         const EXPIRE_TIME = 5 * 60 * 1000;
-        let currentContent = "LEHUY-" + Math.random().toString(36).slice(2,10).toUpperCase();
+        let currentContent = "NGOAN-" + Math.random().toString(36).slice(2,10).toUpperCase();
         let currentAmount = 0;
         document.getElementById("contentText").innerText = currentContent;
         updateAmountDisplay();
@@ -572,7 +572,7 @@
                 showToast();
                 if (markAsUsed) {
                     isUsed = true;
-                    expireQR("QR đã bị blacklist (đã sao chép)");
+                    expireQR("QR đã bị xoá do hết hạn (đã sao chép)");
                 }
             });
         }
@@ -600,7 +600,7 @@
         }
         tick();
 
-        function expireQR(reason = "QR đã bị blacklist (đã sử dụng 1 lần)") {
+        function expireQR(reason = "QR đã bị xoá do hết hạn (đã sử dụng 1 lần)") {
             document.getElementById("timerLabel").innerText = "QR đã hết hạn";
             document.getElementById("timerTime").innerText = "";
             document.getElementById("timerBar").style.width = "0%";
@@ -659,11 +659,11 @@
             try {
                 const response = await fetch(qrImg.src);
                 const blob = await response.blob();
-                const file = new File([blob], `qr-lehuy-${currentContent}.png`, { type: 'image/png' });
-                const shareText = `Chuyển khoản cho LE DUC HUY\nSố TK: ${ACCOUNT}\nNội dung: ${currentContent}${currentAmount > 0 ? `\nSố tiền: ${currentAmount.toLocaleString('vi-VN')} VNĐ` : ''}\n\nDùng QR này để chuyển nhanh nhé!`;
+                const file = new File([blob], `chuyen-tien-lethingoan-${currentContent}.png`, { type: 'image/png' });
+                const shareText = `Chuyển khoản cho LE THI NGOAN\nSố TK: ${ACCOUNT}\nNội dung: ${currentContent}${currentAmount > 0 ? `\nSố tiền: ${currentAmount.toLocaleString('vi-VN')} VNĐ` : ''}\n\nDùng QR này để chuyển nhanh nhé!`;
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({
-                        title: 'QR Chuyển Khoản Lehuy',
+                        title: 'QR Chuyển Khoản Le Ngoan',
                         text: shareText,
                         files: [file]
                     });
@@ -672,7 +672,7 @@
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
-                    a.download = `qr-lehuy-${currentContent}${currentAmount > 0 ? '-' + currentAmount.toLocaleString('vi-VN') : ''}.png`;
+                    a.download = `qr-le-ngoan-${currentContent}${currentAmount > 0 ? '-' + currentAmount.toLocaleString('vi-VN') : ''}.png`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
@@ -752,7 +752,7 @@
             menuModal.style.display = "none";
 
             // Tạo nội dung random mới
-            currentContent = "LEHUY-" + Math.random().toString(36).slice(2,10).toUpperCase();
+            currentContent = "NGOAN-" + Math.random().toString(36).slice(2,10).toUpperCase();
 
             // Giữ nguyên số tiền hiện tại (bỏ comment dòng dưới nếu muốn reset về 0)
             // currentAmount = 0;
@@ -1025,3 +1025,4 @@
     </script>
 </body>
 </html>
+
