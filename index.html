@@ -345,9 +345,9 @@
         </div>
         <div class="info">
             <b>🏧 Ngân hàng:</b> VietinBank <br>
-            <b>👤 Chủ TK:</b> LE THI NGOAN <br>
+            <b>👤 Chủ TK:</b> LE DUC HUY <br>
             <div class="row">
-                <div class="row-text">💳 <span id="accNumber">0915761042</span></div>
+                <div class="row-text">💳 <span id="accNumber">12374668</span></div>
                 <button class="copy-btn copy-mini" onclick="copyText(document.getElementById('accNumber').innerText, true)">Sao chép</button>
             </div>
             <div class="row">
@@ -394,7 +394,7 @@
     <div id="editModal">
         <div class="edit-box">
             <h3>Thay đổi nội dung & số tiền chuyển khoản</h3>
-            <input type="text" id="newContent" placeholder="Ví dụ: NGOAN-ABC123" maxlength="50">
+            <input type="text" id="newContent" placeholder="Ví dụ: lhuy-ABC123" maxlength="50">
             <input type="number" id="newAmount" placeholder="Số tiền (VNĐ, ví dụ 100000)" min="2000" step="2000">
             <small style="color:#94a3b8; display:block;">Để trống số tiền nếu không yêu cầu cụ thể.</small>
             <div class="edit-actions">
@@ -497,10 +497,10 @@
 
         // ================== DATA ==================
         const BANK_ID = "970415";
-        const ACCOUNT = "0915761042";
-        const NAME = "LE THI NGOAN";
+        const ACCOUNT = "12374668";
+        const NAME = "LE DUC HUY";
         const EXPIRE_TIME = 5 * 60 * 1000;
-        let currentContent = "NGOAN-" + Math.random().toString(36).slice(2,10).toUpperCase();
+        let currentContent = "lhuy-" + Math.random().toString(36).slice(2,10).toUpperCase();
         let currentAmount = 0;
         document.getElementById("contentText").innerText = currentContent;
         updateAmountDisplay();
